@@ -1,27 +1,49 @@
+import { useState } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Index from "./pages/Index";
-import NotFound from "./pages/NotFound";
+import Landing from "./pages/Landing";
+import OnboardingWizard from "./components/onboarding/OnboardingWizard";
+import Dashboard from "./pages/Dashboard";
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+type AppState = 'landing' | 'onboarding' | 'dashboard';
+
+const App = () => {
+  const [appState, setAppState] = useState<AppState>('landing');
+
+  const handleAuthSuccess = () => {
+    setAppState('onboarding');
+  };
+
+  const handleOnboardingComplete = () => {
+    setAppState('dashboard');
+  };
+
+  const renderCurrentView = () => {
+    switch (appState) {
+      case 'landing':
+        return <Landing onAuthSuccess={handleAuthSuccess} />;
+      case 'onboarding':
+        return <OnboardingWizard onComplete={handleOnboardingComplete} />;
+      case 'dashboard':
+        return <Dashboard />;
+      default:
+        return <Landing onAuthSuccess={handleAuthSuccess} />;
+    }
+  };
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        {renderCurrentView()}
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;
