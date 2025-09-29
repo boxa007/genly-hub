@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { ChevronLeft, ChevronRight, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import LinkedInStep from "./steps/LinkedInStep";
 import CompanyStep from "./steps/CompanyStep";
@@ -22,6 +23,8 @@ const steps = [
 
 const OnboardingWizard = ({ onComplete }: OnboardingWizardProps) => {
   const [currentStep, setCurrentStep] = useState(1);
+  const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
   const [formData, setFormData] = useState({
     linkedinUrl: "",
     websiteUrl: "",
@@ -38,11 +41,56 @@ const OnboardingWizard = ({ onComplete }: OnboardingWizardProps) => {
   const isLastStep = currentStep === steps.length;
   const isFirstStep = currentStep === 1;
 
+  // Check if current step data is complete
+  const getIsComplete = () => {
+    const filledCompetitors = formData.competitors?.filter((c: string) => c.trim() !== "") || [];
+    
+    return formData.linkedinUrl && 
+           formData.websiteUrl && 
+           formData.companyDescription && 
+           formData.mainMessage && 
+           formData.icpDescription && 
+           formData.industry && 
+           formData.companySize && 
+           filledCompetitors.length > 0 && 
+           formData.termsAccepted;
+  };
+
+  const isComplete = getIsComplete();
+
   const handleNext = async () => {
     if (isLastStep) {
+      // Validate form before saving
+      if (!isComplete) {
+        toast({
+          title: "Заполните все поля",
+          description: "Пожалуйста, заполните все обязательные поля перед началом сбора данных.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (!formData.termsAccepted) {
+        toast({
+          title: "Примите условия",
+          description: "Необходимо принять условия использования для продолжения.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      setIsLoading(true);
+      console.log('Starting data save with form data:', formData);
+      
       // Save all onboarding data to Supabase
       const success = await handleSaveData();
+      setIsLoading(false);
+      
       if (success) {
+        toast({
+          title: "Данные сохранены!",
+          description: "Начинаем сбор данных для анализа.",
+        });
         onComplete();
       }
     } else {
@@ -52,35 +100,56 @@ const OnboardingWizard = ({ onComplete }: OnboardingWizardProps) => {
 
   const handleSaveData = async () => {
     try {
+      console.log('Getting user...');
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         console.error('No user found');
+        toast({
+          title: "Ошибка авторизации",
+          description: "Не удалось получить данные пользователя. Попробуйте войти заново.",
+          variant: "destructive",
+        });
         return false;
       }
 
+      console.log('User found:', user.id);
+      console.log('Saving company data...');
+
       // Save company data
+      const companyData = {
+        user_id: user.id,
+        linkedin_url: formData.linkedinUrl,
+        website_url: formData.websiteUrl,
+        company_description: formData.companyDescription,
+        main_message: formData.mainMessage,
+        icp_description: formData.icpDescription,
+        industry: formData.industry,
+        company_size: formData.companySize,
+        data_collection_status: 'in_progress'
+      };
+
+      console.log('Company data to save:', companyData);
+
       const { data: company, error: companyError } = await supabase
         .from('companies')
-        .insert({
-          user_id: user.id,
-          linkedin_url: formData.linkedinUrl,
-          website_url: formData.websiteUrl,
-          company_description: formData.companyDescription,
-          main_message: formData.mainMessage,
-          icp_description: formData.icpDescription,
-          industry: formData.industry,
-          company_size: formData.companySize,
-          data_collection_status: 'in_progress'
-        })
+        .insert(companyData)
         .select()
         .single();
 
       if (companyError) {
         console.error('Error saving company data:', companyError);
+        toast({
+          title: "Ошибка сохранения",
+          description: `Не удалось сохранить данные компании: ${companyError.message}`,
+          variant: "destructive",
+        });
         return false;
       }
 
+      console.log('Company saved successfully:', company);
+
       // Save competitors
+      console.log('Saving competitors...');
       const competitorData = formData.competitors
         .filter(competitor => competitor.trim())
         .map(competitor => ({
@@ -90,6 +159,8 @@ const OnboardingWizard = ({ onComplete }: OnboardingWizardProps) => {
           website_url: `https://${competitor.toLowerCase().replace(/\s+/g, '')}.com`
         }));
 
+      console.log('Competitor data to save:', competitorData);
+
       if (competitorData.length > 0) {
         const { error: competitorsError } = await supabase
           .from('competitors')
@@ -97,11 +168,18 @@ const OnboardingWizard = ({ onComplete }: OnboardingWizardProps) => {
 
         if (competitorsError) {
           console.error('Error saving competitors:', competitorsError);
+          toast({
+            title: "Ошибка сохранения",
+            description: `Не удалось сохранить данные конкурентов: ${competitorsError.message}`,
+            variant: "destructive",
+          });
           return false;
         }
+        console.log('Competitors saved successfully');
       }
 
       // Update user profile to mark onboarding as completed
+      console.log('Updating user profile...');
       const { error: profileError } = await supabase
         .from('user_profiles')
         .update({ onboarding_completed: true })
@@ -109,13 +187,24 @@ const OnboardingWizard = ({ onComplete }: OnboardingWizardProps) => {
 
       if (profileError) {
         console.error('Error updating profile:', profileError);
+        toast({
+          title: "Ошибка обновления",
+          description: `Не удалось обновить профиль: ${profileError.message}`,
+          variant: "destructive",
+        });
         return false;
       }
 
+      console.log('Profile updated successfully');
       return true;
 
     } catch (error) {
       console.error('Error saving onboarding data:', error);
+      toast({
+        title: "Неожиданная ошибка",
+        description: `Произошла ошибка при сохранении данных: ${error.message}`,
+        variant: "destructive",
+      });
       return false;
     }
   };
@@ -206,9 +295,10 @@ const OnboardingWizard = ({ onComplete }: OnboardingWizardProps) => {
 
           <Button
             onClick={handleNext}
+            disabled={isLastStep && (!isComplete || isLoading)}
             className="btn-hero"
           >
-            {isLastStep ? 'Start Data Collection' : 'Continue'}
+            {isLoading ? 'Сохранение...' : isLastStep ? 'Start Data Collection' : 'Continue'}
             {!isLastStep && <ChevronRight className="w-5 h-5 ml-2" />}
           </Button>
         </div>
