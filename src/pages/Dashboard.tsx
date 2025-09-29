@@ -1,7 +1,6 @@
 import { useState } from "react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import DashboardHome from "@/components/dashboard/DashboardHome";
-import CreateContent from "@/components/dashboard/CreateContent";
 import ContentLibrary from "@/components/dashboard/ContentLibrary";
 
 const Dashboard = () => {
@@ -11,8 +10,6 @@ const Dashboard = () => {
     switch (activeTab) {
       case 'dashboard':
         return <DashboardHome />;
-      case 'create':
-        return <CreateContent />;
       case 'library':
         return <ContentLibrary />;
       case 'schedule':

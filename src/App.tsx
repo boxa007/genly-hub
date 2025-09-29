@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -8,6 +9,7 @@ import type { Session, User } from "@supabase/supabase-js";
 import Landing from "./pages/Landing";
 import OnboardingWizard from "./components/onboarding/OnboardingWizard";
 import Dashboard from "./pages/Dashboard";
+import CreatePost from "./pages/CreatePost";
 
 const queryClient = new QueryClient();
 
@@ -134,13 +136,23 @@ const App = () => {
   }
 
   const renderCurrentView = () => {
+    if (appState === 'dashboard') {
+      return (
+        <Router>
+          <Routes>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/create-post" element={<CreatePost />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </Router>
+      );
+    }
+
     switch (appState) {
       case 'landing':
         return <Landing onAuthSuccess={handleAuthSuccess} />;
       case 'onboarding':
         return <OnboardingWizard onComplete={handleOnboardingComplete} />;
-      case 'dashboard':
-        return <Dashboard />;
       default:
         return <Landing onAuthSuccess={handleAuthSuccess} />;
     }

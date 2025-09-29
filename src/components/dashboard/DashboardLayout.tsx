@@ -16,7 +16,6 @@ import { Button } from "@/components/ui/button";
 
 const sidebarItems = [
   { id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
-  { id: 'create', icon: PlusCircle, label: 'Create Content', path: '/dashboard/create' },
   { id: 'library', icon: FolderOpen, label: 'Content Library', path: '/dashboard/library' },
   { id: 'schedule', icon: Calendar, label: 'Schedule', path: '/dashboard/schedule' },
   { id: 'analytics', icon: BarChart3, label: 'Analytics', path: '/dashboard/analytics' },
@@ -24,6 +23,8 @@ const sidebarItems = [
   { id: 'billing', icon: CreditCard, label: 'Billing', path: '/dashboard/billing' },
   { id: 'settings', icon: Settings, label: 'Settings', path: '/dashboard/settings' }
 ];
+
+const createContentItem = { id: 'create', icon: PlusCircle, label: 'Create Content', path: '/create-post' };
 
 interface DashboardLayoutProps {
   activeTab: string;
@@ -75,6 +76,18 @@ const DashboardLayout = ({ activeTab, onTabChange, children }: DashboardLayoutPr
 
           {/* Navigation */}
           <nav className="flex-1 px-4 py-6 space-y-2">
+            {/* Create Content Button */}
+            <button
+              onClick={() => {
+                window.location.href = '/create-post';
+                setIsSidebarOpen(false);
+              }}
+              className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-all duration-200 text-text-secondary hover:text-white hover:bg-white/5"
+            >
+              <createContentItem.icon className="w-5 h-5" />
+              <span className="font-medium">{createContentItem.label}</span>
+            </button>
+
             {sidebarItems.map((item) => {
               const Icon = item.icon;
               const isActive = activeTab === item.id;

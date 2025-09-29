@@ -130,7 +130,10 @@ const DashboardHome = () => {
           </p>
         </div>
         
-        <Button className="btn-hero mt-4 md:mt-0">
+        <Button 
+          className="btn-hero mt-4 md:mt-0"
+          onClick={() => window.location.href = '/create-post'}
+        >
           <PlusCircle className="w-5 h-5 mr-2" />
           Create New Content
         </Button>
@@ -254,7 +257,10 @@ const DashboardHome = () => {
           ) : (
             <div className="text-center py-8">
               <p className="text-text-secondary">No content created yet.</p>
-              <Button className="btn-hero mt-4">
+              <Button 
+                className="btn-hero mt-4"
+                onClick={() => window.location.href = '/create-post'}
+              >
                 <PlusCircle className="w-4 h-4 mr-2" />
                 Create Your First Post
               </Button>
