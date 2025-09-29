@@ -61,7 +61,9 @@ const CreatePost = () => {
     
     setIsGenerating(true);
     setShowHookSelector(false);
+    setSelectedHookIndex(-1);
     setGeneratedContent('');
+    setGeneratedHooks([]);
     
     // Simulate AI generation
     await new Promise(resolve => setTimeout(resolve, 3000));
@@ -148,6 +150,8 @@ This is just the beginning. Thank you to our amazing community for trusting us w
 
   const handleRegenerateText = async () => {
     setIsRegenerating('text');
+    setShowHookSelector(false);
+    setSelectedHookIndex(-1);
     await new Promise(resolve => setTimeout(resolve, 2000));
     
     // Generate new hooks
@@ -429,6 +433,7 @@ This is just the beginning. Thank you to our amazing community for trusting us w
             {/* Hook Selector */}
             {showHookSelector && generatedHooks.length > 0 && (
               <HookSelector
+                key={`hooks-${generatedHooks[0]}`}
                 hooks={generatedHooks}
                 postBody={generatedContent}
                 onSelectHook={handleSelectHook}

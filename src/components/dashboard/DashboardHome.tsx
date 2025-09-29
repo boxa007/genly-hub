@@ -4,6 +4,7 @@ import { PlusCircle, TrendingUp, FileText, Calendar, Users, Zap, ArrowRight } fr
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import EditPostModal from "@/components/dashboard/EditPostModal";
 
 interface DashboardHomeProps {
   onTabChange?: (tab: string) => void;
@@ -46,6 +47,8 @@ const DashboardHome = ({ onTabChange }: DashboardHomeProps) => {
   ]);
   const [recentContent, setRecentContent] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [editingContent, setEditingContent] = useState<any>(null);
+  const [editModalOpen, setEditModalOpen] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -145,6 +148,11 @@ const DashboardHome = ({ onTabChange }: DashboardHomeProps) => {
     } else {
       return `${diffDays} days ago`;
     }
+  };
+
+  const handleEditPost = (content: any) => {
+    setEditingContent(content);
+    setEditModalOpen(true);
   };
 
   return (
@@ -249,7 +257,11 @@ const DashboardHome = ({ onTabChange }: DashboardHomeProps) => {
       <div className="card-glass rounded-2xl p-8">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-bold text-white">Recent Content</h2>
-          <Button variant="ghost" className="text-purple-400 hover:text-blue-400">
+          <Button 
+            variant="ghost" 
+            className="text-purple-400 hover:text-blue-400"
+            onClick={() => onTabChange?.('library')}
+          >
             View All
             <ArrowRight className="w-4 h-4 ml-2" />
           </Button>
@@ -265,6 +277,7 @@ const DashboardHome = ({ onTabChange }: DashboardHomeProps) => {
             recentContent.map((content, index) => (
               <div 
                 key={content.id}
+                onClick={() => handleEditPost(content)}
                 className="flex items-center justify-between p-4 rounded-xl bg-white/5 hover:bg-white/10 transition-colors cursor-pointer group"
               >
                 <div className="flex-1">
@@ -358,6 +371,19 @@ const DashboardHome = ({ onTabChange }: DashboardHomeProps) => {
           </div>
         </div>
       </div>
+
+      {/* Edit Post Modal */}
+      {editingContent && (
+        <EditPostModal
+          open={editModalOpen}
+          onOpenChange={setEditModalOpen}
+          content={editingContent}
+          onSuccess={() => {
+            fetchDashboardData();
+            setEditModalOpen(false);
+          }}
+        />
+      )}
     </div>
   );
 };
