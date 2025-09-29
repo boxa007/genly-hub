@@ -65,7 +65,6 @@ const AuthModal = ({ isOpen, onClose, onSuccess }: AuthModalProps) => {
           email: formData.email,
           password: formData.password,
           options: {
-            emailRedirectTo: `${window.location.origin}/`,
             data: {
               full_name: formData.name,
             }
@@ -76,8 +75,11 @@ const AuthModal = ({ isOpen, onClose, onSuccess }: AuthModalProps) => {
         
         toast({
           title: "Account created!",
-          description: "Check your email to verify your account.",
+          description: "You can now sign in to your account.",
         });
+        
+        // Switch to login form after successful registration
+        setIsLogin(true);
       }
       
       onSuccess();
