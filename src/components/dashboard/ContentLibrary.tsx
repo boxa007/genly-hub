@@ -201,7 +201,7 @@ const ContentLibrary = () => {
       {/* Content Grid/List */}
       {loading ? (
         <div className="text-center py-16">
-          <div className="w-8 h-8 border-2 border-purple-400 border-t-transparent rounded-full animate-spin mx-auto"></div>
+          <div className="w-8 h-8 border-2 border-accent-purple border-t-transparent rounded-full animate-spin mx-auto"></div>
           <p className="text-text-secondary mt-4">Loading your content...</p>
         </div>
       ) : viewMode === 'grid' ? (
