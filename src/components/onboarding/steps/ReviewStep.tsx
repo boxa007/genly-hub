@@ -6,7 +6,7 @@ interface ReviewStepProps {
   updateFormData: (field: string, value: any) => void;
 }
 
-const ReviewStep = ({ formData }: ReviewStepProps) => {
+const ReviewStep = ({ formData, updateFormData }: ReviewStepProps) => {
   const filledCompetitors = formData.competitors?.filter((c: string) => c.trim() !== "") || [];
   
   const isComplete = formData.linkedinUrl && 
@@ -227,6 +227,8 @@ const ReviewStep = ({ formData }: ReviewStepProps) => {
         <input 
           type="checkbox" 
           id="terms" 
+          checked={formData.termsAccepted}
+          onChange={(e) => updateFormData('termsAccepted', e.target.checked)}
           className="mt-1 w-4 h-4 rounded border-white/20 bg-white/10 text-purple-600 focus:ring-purple-500 focus:ring-1"
         />
         <label htmlFor="terms" className="text-text-secondary text-sm">

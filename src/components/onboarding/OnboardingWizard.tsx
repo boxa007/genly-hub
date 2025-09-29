@@ -30,7 +30,8 @@ const OnboardingWizard = ({ onComplete }: OnboardingWizardProps) => {
     icpDescription: "",
     industry: "",
     companySize: "",
-    competitors: ["", "", ""]
+    competitors: ["", "", ""],
+    termsAccepted: true
   });
 
   const currentStepData = steps.find(step => step.id === currentStep);
@@ -40,8 +41,10 @@ const OnboardingWizard = ({ onComplete }: OnboardingWizardProps) => {
   const handleNext = async () => {
     if (isLastStep) {
       // Save all onboarding data to Supabase
-      await handleSaveData();
-      onComplete();
+      const success = await handleSaveData();
+      if (success) {
+        onComplete();
+      }
     } else {
       setCurrentStep(prev => prev + 1);
     }
@@ -50,7 +53,10 @@ const OnboardingWizard = ({ onComplete }: OnboardingWizardProps) => {
   const handleSaveData = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) {
+        console.error('No user found');
+        return false;
+      }
 
       // Save company data
       const { data: company, error: companyError } = await supabase
@@ -69,7 +75,10 @@ const OnboardingWizard = ({ onComplete }: OnboardingWizardProps) => {
         .select()
         .single();
 
-      if (companyError) throw companyError;
+      if (companyError) {
+        console.error('Error saving company data:', companyError);
+        return false;
+      }
 
       // Save competitors
       const competitorData = formData.competitors
@@ -86,7 +95,10 @@ const OnboardingWizard = ({ onComplete }: OnboardingWizardProps) => {
           .from('competitors')
           .insert(competitorData);
 
-        if (competitorsError) throw competitorsError;
+        if (competitorsError) {
+          console.error('Error saving competitors:', competitorsError);
+          return false;
+        }
       }
 
       // Update user profile to mark onboarding as completed
@@ -95,10 +107,16 @@ const OnboardingWizard = ({ onComplete }: OnboardingWizardProps) => {
         .update({ onboarding_completed: true })
         .eq('user_id', user.id);
 
-      if (profileError) throw profileError;
+      if (profileError) {
+        console.error('Error updating profile:', profileError);
+        return false;
+      }
+
+      return true;
 
     } catch (error) {
       console.error('Error saving onboarding data:', error);
+      return false;
     }
   };
 
