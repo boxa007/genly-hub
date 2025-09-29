@@ -65,7 +65,7 @@ const LinkedInStep = ({ formData, updateFormData }: LinkedInStepProps) => {
           {/* Validation Icon */}
           <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
             {isValidating ? (
-              <div className="w-6 h-6 border-2 border-accent-purple border-t-transparent rounded-full animate-spin"></div>
+              <div className="w-6 h-6 border-2 border-purple-400 border-t-transparent rounded-full animate-spin"></div>
             ) : isValid === true ? (
               <CheckCircle className="w-6 h-6 text-success" />
             ) : isValid === false ? (

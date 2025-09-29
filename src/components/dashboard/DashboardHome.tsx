@@ -216,7 +216,7 @@ const DashboardHome = () => {
         <div className="space-y-4">
           {loading ? (
             <div className="text-center py-8">
-              <div className="w-8 h-8 border-2 border-accent-purple border-t-transparent rounded-full animate-spin mx-auto"></div>
+              <div className="w-8 h-8 border-2 border-purple-400 border-t-transparent rounded-full animate-spin mx-auto"></div>
               <p className="text-text-secondary mt-2">Loading content...</p>
             </div>
           ) : recentContent.length > 0 ? (
