@@ -153,6 +153,8 @@ const App = () => {
               element={
                 appState === 'dashboard' ? (
                   <Dashboard />
+                ) : appState === 'onboarding' ? (
+                  <Navigate to="/onboarding" replace />
                 ) : (
                   <Landing onAuthSuccess={handleAuthSuccess} />
                 )
