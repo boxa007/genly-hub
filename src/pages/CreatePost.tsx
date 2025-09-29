@@ -5,9 +5,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { ImageSettings, ImageData } from "@/components/dashboard/ImageSettings";
+import { HookSelector } from "@/components/dashboard/HookSelector";
+import { RegenerationToolbar } from "@/components/dashboard/RegenerationToolbar";
+import { QuickSettingsMenu } from "@/components/dashboard/QuickSettingsMenu";
+import { EditContentModal } from "@/components/dashboard/EditContentModal";
 
 const contentTypes = [
   { id: 'engagement', label: 'Engagement' },
@@ -21,13 +27,22 @@ const CreatePost = () => {
   const navigate = useNavigate();
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedContent, setGeneratedContent] = useState('');
+  const [generatedHooks, setGeneratedHooks] = useState<string[]>([]);
+  const [selectedHookIndex, setSelectedHookIndex] = useState(-1);
   const [isSaving, setIsSaving] = useState(false);
   const [isScheduling, setIsScheduling] = useState(false);
+  const [showHookSelector, setShowHookSelector] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [isRegenerating, setIsRegenerating] = useState<'text' | 'image' | 'all' | null>(null);
+  const [imageData, setImageData] = useState<ImageData | null>({
+    mode: 'generate',
+    style: 'realistic_photo',
+    template: 'none',
+  });
   const [formData, setFormData] = useState({
     topic: '',
     contentType: searchParams.get('type') || 'engagement',
     tone: 'professional',
-    imageStyle: 'realistic_photo',
     length: 'medium',
     includeCTA: true
   });
@@ -45,9 +60,19 @@ const CreatePost = () => {
     if (!formData.topic) return;
     
     setIsGenerating(true);
+    setShowHookSelector(false);
+    setGeneratedContent('');
     
     // Simulate AI generation
     await new Promise(resolve => setTimeout(resolve, 3000));
+    
+    // Generate 4 different hooks
+    const hooks = [
+      `🚀 Just discovered something that completely changed my perspective on ${formData.topic}...`,
+      `💡 Here's an uncomfortable truth about ${formData.topic} that nobody talks about...`,
+      `📊 After analyzing 1000+ cases, I found the #1 mistake people make with ${formData.topic}...`,
+      `🎯 Want to know the secret that top performers use for ${formData.topic}?`,
+    ];
     
     // Mock generated content based on type
     const mockContent = {
@@ -107,12 +132,81 @@ This is just the beginning. Thank you to our amazing community for trusting us w
 #Milestone #Community #ContentGeneration #LinkedIn`
     };
 
-    setGeneratedContent(mockContent[formData.contentType as keyof typeof mockContent] || '');
+    const bodyContent = mockContent[formData.contentType as keyof typeof mockContent] || '';
+    
+    setGeneratedHooks(hooks);
+    setGeneratedContent(bodyContent);
+    setShowHookSelector(true);
+    setSelectedHookIndex(-1);
     setIsGenerating(false);
   };
 
+  const handleSelectHook = (index: number) => {
+    setSelectedHookIndex(index);
+    setShowHookSelector(false);
+  };
+
+  const handleRegenerateText = async () => {
+    setIsRegenerating('text');
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    // Generate new hooks
+    const newHooks = [
+      `🌟 This ${formData.topic} insight just blew my mind...`,
+      `⚡ Stop doing ${formData.topic} the hard way. Here's what actually works...`,
+      `🔥 The ${formData.topic} strategy that tripled our results...`,
+      `💬 Real talk: What everyone gets wrong about ${formData.topic}...`,
+    ];
+    
+    setGeneratedHooks(newHooks);
+    setShowHookSelector(true);
+    setSelectedHookIndex(-1);
+    setIsRegenerating(null);
+  };
+
+  const handleRegenerateImage = async () => {
+    setIsRegenerating('image');
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    toast({
+      title: "Image regenerated",
+      description: "New image generated successfully",
+    });
+    
+    setIsRegenerating(null);
+  };
+
+  const handleSettingChange = (setting: string, value: any) => {
+    setFormData(prev => ({ ...prev, [setting]: value }));
+    toast({
+      title: "Setting updated",
+      description: `${setting} changed to ${value}`,
+    });
+  };
+
+  const handleRegenerateAll = async () => {
+    setIsRegenerating('all');
+    await handleGenerate();
+    setIsRegenerating(null);
+  };
+
+  const handleSaveEdit = (newContent: string) => {
+    const fullContent = selectedHookIndex >= 0 
+      ? `${generatedHooks[selectedHookIndex]}\n\n${newContent}`
+      : newContent;
+    setGeneratedContent(fullContent);
+  };
+
+  const getFinalContent = () => {
+    if (selectedHookIndex >= 0 && generatedHooks.length > 0) {
+      return `${generatedHooks[selectedHookIndex]}\n\n${generatedContent}`;
+    }
+    return generatedContent;
+  };
+
   const handleCopy = () => {
-    navigator.clipboard.writeText(generatedContent);
+    const content = getFinalContent();
+    navigator.clipboard.writeText(content);
     toast({
       title: "Copied!",
       description: "Content copied to clipboard.",
@@ -124,15 +218,16 @@ This is just the beginning. Thank you to our amazing community for trusting us w
     
     setIsSaving(true);
     try {
+      const content = getFinalContent();
       const { error } = await supabase
         .from('content')
         .insert({
           user_id: user.id,
           title: formData.topic,
-          body: generatedContent,
+          body: content,
           content_type: formData.contentType,
           tone: formData.tone,
-          image_style: formData.imageStyle,
+          image_style: imageData?.style || 'realistic_photo',
           status: 'draft'
         });
       
@@ -158,6 +253,7 @@ This is just the beginning. Thank you to our amazing community for trusting us w
     
     setIsScheduling(true);
     try {
+      const content = getFinalContent();
       // For now, just save as scheduled - in real app would show date picker
       const scheduledDate = new Date();
       scheduledDate.setHours(scheduledDate.getHours() + 24); // Schedule for tomorrow
@@ -167,10 +263,10 @@ This is just the beginning. Thank you to our amazing community for trusting us w
         .insert({
           user_id: user.id,
           title: formData.topic,
-          body: generatedContent,
+          body: content,
           content_type: formData.contentType,
           tone: formData.tone,
-          image_style: formData.imageStyle,
+          image_style: imageData?.style || 'realistic_photo',
           status: 'scheduled',
           scheduled_at: scheduledDate.toISOString()
         });
@@ -213,8 +309,10 @@ This is just the beginning. Thank you to our amazing community for trusting us w
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Generation Form */}
-          <div className="card-glass rounded-2xl p-8 space-y-6">
+          {/* Left Column - Settings */}
+          <div className="space-y-6">
+            {/* Content Settings */}
+            <div className="card-glass rounded-2xl p-8 space-y-6">
             <h2 className="text-xl font-semibold text-white flex items-center">
               <Sparkles className="w-5 h-5 mr-2 text-purple-400" />
               Content Settings
@@ -271,28 +369,6 @@ This is just the beginning. Thank you to our amazing community for trusting us w
               </div>
 
               <div>
-                <Label className="text-white font-medium">Image Style</Label>
-                <Select
-                  value={formData.imageStyle}
-                  onValueChange={(value) => setFormData(prev => ({ ...prev, imageStyle: value }))}
-                >
-                  <SelectTrigger className="input-glass mt-2">
-                    <SelectValue placeholder="Select image style" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-navy-800 border-white/20">
-                    <SelectItem value="realistic_photo" className="text-white">Realistic Photo</SelectItem>
-                    <SelectItem value="digital_illustration" className="text-white">Digital Illustration</SelectItem>
-                    <SelectItem value="abstract_art" className="text-white">Abstract Art</SelectItem>
-                    <SelectItem value="minimalist" className="text-white">Minimalist</SelectItem>
-                    <SelectItem value="3d_render" className="text-white">3D Render</SelectItem>
-                    <SelectItem value="watercolor" className="text-white">Watercolor</SelectItem>
-                    <SelectItem value="line_art" className="text-white">Line Art</SelectItem>
-                    <SelectItem value="corporate" className="text-white">Corporate/Professional</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
                 <Label className="text-white font-medium">Length</Label>
                 <Select
                   value={formData.length}
@@ -339,15 +415,63 @@ This is just the beginning. Thank you to our amazing community for trusting us w
                 </>
               )}
             </Button>
+            </div>
+
+            {/* Image Settings */}
+            <ImageSettings 
+              onImageChange={setImageData}
+              currentImage={imageData}
+            />
           </div>
 
-          {/* Preview */}
-          <div className="card-glass rounded-2xl p-8">
-            <h2 className="text-xl font-semibold text-white mb-6">
-              LinkedIn Preview
-            </h2>
+          {/* Right Column - Preview */}
+          <div className="space-y-6">
+            {/* Hook Selector */}
+            {showHookSelector && generatedHooks.length > 0 && (
+              <HookSelector
+                hooks={generatedHooks}
+                postBody={generatedContent}
+                onSelectHook={handleSelectHook}
+              />
+            )}
 
-            {generatedContent ? (
+            {/* LinkedIn Preview */}
+            {!showHookSelector && selectedHookIndex >= 0 && (
+              <>
+                {/* Regeneration Toolbar */}
+                <RegenerationToolbar
+                  onRegenerateText={handleRegenerateText}
+                  onRegenerateImage={handleRegenerateImage}
+                  onEditContent={() => setShowEditModal(true)}
+                  hasImage={imageData?.mode === 'generate' || !!imageData?.file}
+                  isRegenerating={isRegenerating}
+                />
+
+                <div className="card-glass rounded-2xl p-8 relative">
+                  {/* Quick Settings Menu */}
+                  <QuickSettingsMenu
+                    currentTone={formData.tone}
+                    currentLength={formData.length}
+                    includeCTA={formData.includeCTA}
+                    onSettingChange={handleSettingChange}
+                    onRegenerateAll={handleRegenerateAll}
+                  />
+
+                  <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-xl font-semibold text-white">
+                      LinkedIn Preview
+                    </h2>
+                    {selectedHookIndex >= 0 && (
+                      <Badge 
+                        variant="outline" 
+                        className="border-brand-purple text-brand-purple bg-brand-purple/10"
+                      >
+                        Hook {selectedHookIndex + 1} of {generatedHooks.length} selected
+                      </Badge>
+                    )}
+                  </div>
+
+            {selectedHookIndex >= 0 && generatedContent ? (
               <div className="space-y-6">
                 {/* LinkedIn Post Preview */}
                 <div className="bg-white rounded-lg p-6 text-gray-900">
@@ -363,7 +487,7 @@ This is just the beginning. Thank you to our amazing community for trusting us w
                   </div>
                   
                   <div className="whitespace-pre-wrap text-gray-900 leading-relaxed">
-                    {generatedContent}
+                    {getFinalContent()}
                   </div>
 
                   <div className="flex items-center justify-between mt-6 pt-4 border-t">
@@ -433,8 +557,19 @@ This is just the beginning. Thank you to our amazing community for trusting us w
                 </p>
               </div>
             )}
+                </div>
+              </>
+            )}
           </div>
         </div>
+
+        {/* Edit Content Modal */}
+        <EditContentModal
+          open={showEditModal}
+          onClose={() => setShowEditModal(false)}
+          content={generatedContent}
+          onSave={handleSaveEdit}
+        />
       </div>
     </div>
   );
