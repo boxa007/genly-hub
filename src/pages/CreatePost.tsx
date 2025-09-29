@@ -84,9 +84,7 @@ const CreatePost = () => {
 
 This reminded me why I love what we do at our company. It's not just about the solution – it's about seeing the problem differently.
 
-What's the most surprising insight you've gained from a client conversation? 👇
-
-#BusinessStrategy #ClientSuccess #Innovation`,
+What's the most surprising insight you've gained from a client conversation? 👇`,
 
       educational: `📊 The biggest mistake I see companies make with LinkedIn? Treating it like Facebook.
 
@@ -100,9 +98,7 @@ Here's what works instead:
 
 LinkedIn rewards authentic professional engagement. The algorithm can tell the difference.
 
-Which of these do you struggle with most? Let's discuss below 👇
-
-#LinkedInStrategy #B2BMarketing #ProfessionalNetworking`,
+Which of these do you struggle with most? Let's discuss below 👇`,
 
       'lead-magnet': `🎯 Want to know the exact framework we use to generate 10x more qualified leads?
 
@@ -115,9 +111,7 @@ I just published our complete "Lead Generation Blueprint" that includes:
 
 This is the same system that helped our clients generate over $2M in new revenue last quarter.
 
-Drop a comment with "BLUEPRINT" and I'll send you the free guide 👇
-
-#LeadGeneration #SalesStrategy #B2BMarketing`,
+Drop a comment with "BLUEPRINT" and I'll send you the free guide 👇`,
 
       'company-update': `🎉 Exciting news! We just hit a major milestone at ContentGen...
 
@@ -129,9 +123,7 @@ Like Sarah, who went from 200 to 5,000 followers in 6 months.
 Or Mike, who landed 3 new clients just from his LinkedIn content.
 Or the team at TechCorp who increased their lead generation by 400%.
 
-This is just the beginning. Thank you to our amazing community for trusting us with your LinkedIn growth! 🙏
-
-#Milestone #Community #ContentGeneration #LinkedIn`
+This is just the beginning. Thank you to our amazing community for trusting us with your LinkedIn growth! 🙏`
     };
 
     const bodyContent = mockContent[formData.contentType as keyof typeof mockContent] || '';
@@ -226,13 +218,16 @@ This is just the beginning. Thank you to our amazing community for trusting us w
       const { error } = await supabase
         .from('content')
         .insert({
-          user_id: user.id,
-          title: formData.topic,
-          body: content,
-          content_type: formData.contentType,
-          tone: formData.tone,
-          image_style: imageData?.style || 'realistic_photo',
-          status: 'draft'
+        user_id: user.id,
+        title: formData.topic,
+        body: content,
+        content_type: formData.contentType,
+        tone: formData.tone,
+        image_style: imageData?.style || 'realistic_photo',
+        image_url: imageData?.mode === 'generate' 
+          ? 'https://images.unsplash.com/photo-1557804506-669a67965ba0?w=800&h=400&fit=crop'
+          : imageData?.preview || null,
+        status: 'draft'
         });
       
       if (error) throw error;
@@ -265,14 +260,17 @@ This is just the beginning. Thank you to our amazing community for trusting us w
       const { error } = await supabase
         .from('content')
         .insert({
-          user_id: user.id,
-          title: formData.topic,
-          body: content,
-          content_type: formData.contentType,
-          tone: formData.tone,
-          image_style: imageData?.style || 'realistic_photo',
-          status: 'scheduled',
-          scheduled_at: scheduledDate.toISOString()
+        user_id: user.id,
+        title: formData.topic,
+        body: content,
+        content_type: formData.contentType,
+        tone: formData.tone,
+        image_style: imageData?.style || 'realistic_photo',
+        image_url: imageData?.mode === 'generate' 
+          ? 'https://images.unsplash.com/photo-1557804506-669a67965ba0?w=800&h=400&fit=crop'
+          : imageData?.preview || null,
+        status: 'scheduled',
+        scheduled_at: scheduledDate.toISOString()
         });
       
       if (error) throw error;
@@ -491,29 +489,22 @@ This is just the beginning. Thank you to our amazing community for trusting us w
                     </div>
                   </div>
                   
+                  {/* Image if available */}
+                  {imageData && (
+                    <div className="mb-4">
+                      <img 
+                        src={imageData.mode === 'generate' 
+                          ? 'https://images.unsplash.com/photo-1557804506-669a67965ba0?w=800&h=400&fit=crop'
+                          : imageData.preview || ''
+                        } 
+                        alt="Post image"
+                        className="w-full h-auto rounded-lg"
+                      />
+                    </div>
+                  )}
+
                   <div className="whitespace-pre-wrap text-gray-900 leading-relaxed">
                     {getFinalContent()}
-                  </div>
-
-                  <div className="flex items-center justify-between mt-6 pt-4 border-t">
-                    <div className="flex items-center space-x-6 text-gray-600">
-                      <button className="flex items-center space-x-2 hover:text-blue-600">
-                        <span>👍</span>
-                        <span className="text-sm">Like</span>
-                      </button>
-                      <button className="flex items-center space-x-2 hover:text-blue-600">
-                        <span>💬</span>
-                        <span className="text-sm">Comment</span>
-                      </button>
-                      <button className="flex items-center space-x-2 hover:text-blue-600">
-                        <span>🔄</span>
-                        <span className="text-sm">Repost</span>
-                      </button>
-                      <button className="flex items-center space-x-2 hover:text-blue-600">
-                        <span>📤</span>
-                        <span className="text-sm">Send</span>
-                      </button>
-                    </div>
                   </div>
                 </div>
 

@@ -18,6 +18,7 @@ interface Content {
   status: string;
   scheduled_at: string | null;
   created_at: string;
+  image_url?: string | null;
 }
 
 const ContentLibrary = () => {
@@ -231,6 +232,17 @@ const ContentLibrary = () => {
               className="card-glass card-hover rounded-2xl p-6 group animate-fade-in"
               style={{ animationDelay: `${index * 0.1}s` }}
             >
+              {/* Image thumbnail if available */}
+              {item.image_url && (
+                <div className="mb-4 rounded-lg overflow-hidden">
+                  <img 
+                    src={item.image_url} 
+                    alt={item.title}
+                    className="w-full h-40 object-cover"
+                  />
+                </div>
+              )}
+
               {/* Header */}
               <div className="flex items-start justify-between mb-4">
                 <div className="flex-1">
@@ -300,6 +312,17 @@ const ContentLibrary = () => {
                 className="flex items-center justify-between p-4 rounded-xl bg-white/5 hover:bg-white/10 transition-colors group animate-fade-in"
                 style={{ animationDelay: `${index * 0.05}s` }}
               >
+                {/* Image thumbnail if available */}
+                {item.image_url && (
+                  <div className="w-20 h-20 rounded-lg overflow-hidden mr-4 flex-shrink-0">
+                    <img 
+                      src={item.image_url} 
+                      alt={item.title}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                )}
+
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center space-x-3 mb-2">
                     <span className={`px-2 py-1 rounded-md text-xs font-medium ${getTypeColor(item.content_type)}`}>

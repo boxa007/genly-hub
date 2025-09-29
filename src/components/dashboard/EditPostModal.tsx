@@ -9,7 +9,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { CalendarIcon, Save } from "lucide-react";
+import { CalendarIcon, Save, Upload, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 
@@ -22,6 +22,7 @@ interface Content {
   image_style: string;
   status: string;
   scheduled_at: string | null;
+  image_url?: string | null;
 }
 
 interface EditPostModalProps {
@@ -48,7 +49,8 @@ const EditPostModal = ({ content, open, onOpenChange, onSuccess }: EditPostModal
     tone: 'professional',
     image_style: 'realistic_photo',
     status: 'draft',
-    scheduled_at: null as Date | null
+    scheduled_at: null as Date | null,
+    image_url: null as string | null
   });
 
   useEffect(() => {
@@ -60,10 +62,38 @@ const EditPostModal = ({ content, open, onOpenChange, onSuccess }: EditPostModal
         tone: content.tone,
         image_style: content.image_style,
         status: content.status,
-        scheduled_at: content.scheduled_at ? new Date(content.scheduled_at) : null
+        scheduled_at: content.scheduled_at ? new Date(content.scheduled_at) : null,
+        image_url: content.image_url || null
       });
     }
   }, [content]);
+
+  const handleRemoveImage = () => {
+    setFormData(prev => ({ ...prev, image_url: null }));
+  };
+
+  const handleUploadImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    if (file.size > 10 * 1024 * 1024) {
+      toast({
+        title: "File too large",
+        description: "Maximum file size is 10MB",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setFormData(prev => ({ 
+        ...prev, 
+        image_url: reader.result as string 
+      }));
+    };
+    reader.readAsDataURL(file);
+  };
 
   const handleSave = async () => {
     if (!content) return;
@@ -80,6 +110,7 @@ const EditPostModal = ({ content, open, onOpenChange, onSuccess }: EditPostModal
           image_style: formData.image_style,
           status: formData.status,
           scheduled_at: formData.scheduled_at?.toISOString() || null,
+          image_url: formData.image_url,
           updated_at: new Date().toISOString()
         })
         .eq('id', content.id);
@@ -134,81 +165,88 @@ const EditPostModal = ({ content, open, onOpenChange, onSuccess }: EditPostModal
             />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label className="text-white font-medium">Post Type</Label>
-              <Select
-                value={formData.content_type}
-                onValueChange={(value) => setFormData(prev => ({ ...prev, content_type: value }))}
-              >
-                <SelectTrigger className="input-glass mt-2">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-navy-800 border-white/20">
-                  {contentTypes.map((type) => (
-                    <SelectItem key={type.id} value={type.id} className="text-white">
-                      {type.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+          {/* Image Section */}
+          <div>
+            <Label className="text-white font-medium">Post Image</Label>
+            
+            {formData.image_url ? (
+              <div className="mt-2 relative">
+                {/* Image Preview */}
+                <div className="rounded-lg overflow-hidden border border-white/10">
+                  <img 
+                    src={formData.image_url} 
+                    alt="Post image"
+                    className="w-full h-48 object-cover"
+                  />
+                </div>
+                
+                {/* Action Buttons */}
+                <div className="flex space-x-2 mt-3">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="flex-1 btn-glass"
+                    onClick={handleRemoveImage}
+                  >
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Remove Image
+                  </Button>
+                  
+                  <label className="flex-1">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleUploadImage}
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="w-full btn-glass"
+                      asChild
+                    >
+                      <span>
+                        <Upload className="w-4 h-4 mr-2" />
+                        Replace Image
+                      </span>
+                    </Button>
+                  </label>
+                </div>
+              </div>
+            ) : (
+              <div className="mt-2">
+                <label className="block">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleUploadImage}
+                  />
+                  <div className="border-2 border-dashed border-white/20 rounded-lg p-8 text-center cursor-pointer hover:border-purple-500/50 transition-colors">
+                    <Upload className="w-8 h-8 text-white/40 mx-auto mb-2" />
+                    <p className="text-white/60">Click to upload an image</p>
+                    <p className="text-white/40 text-sm mt-1">PNG, JPG up to 10MB</p>
+                  </div>
+                </label>
+              </div>
+            )}
+          </div>
 
-            <div>
-              <Label className="text-white font-medium">Tone</Label>
-              <Select
-                value={formData.tone}
-                onValueChange={(value) => setFormData(prev => ({ ...prev, tone: value }))}
-              >
-                <SelectTrigger className="input-glass mt-2">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-navy-800 border-white/20">
-                  <SelectItem value="professional" className="text-white">Professional</SelectItem>
-                  <SelectItem value="casual" className="text-white">Casual</SelectItem>
-                  <SelectItem value="thought-leader" className="text-white">Thought Leader</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label className="text-white font-medium">Image Style</Label>
-              <Select
-                value={formData.image_style}
-                onValueChange={(value) => setFormData(prev => ({ ...prev, image_style: value }))}
-              >
-                <SelectTrigger className="input-glass mt-2">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-navy-800 border-white/20">
-                  <SelectItem value="realistic_photo" className="text-white">Realistic Photo</SelectItem>
-                  <SelectItem value="digital_illustration" className="text-white">Digital Illustration</SelectItem>
-                  <SelectItem value="abstract_art" className="text-white">Abstract Art</SelectItem>
-                  <SelectItem value="minimalist" className="text-white">Minimalist</SelectItem>
-                  <SelectItem value="3d_render" className="text-white">3D Render</SelectItem>
-                  <SelectItem value="watercolor" className="text-white">Watercolor</SelectItem>
-                  <SelectItem value="line_art" className="text-white">Line Art</SelectItem>
-                  <SelectItem value="corporate" className="text-white">Corporate/Professional</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label className="text-white font-medium">Status</Label>
-              <Select
-                value={formData.status}
-                onValueChange={(value) => setFormData(prev => ({ ...prev, status: value }))}
-              >
-                <SelectTrigger className="input-glass mt-2">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-navy-800 border-white/20">
-                  <SelectItem value="draft" className="text-white">Draft</SelectItem>
-                  <SelectItem value="scheduled" className="text-white">Scheduled</SelectItem>
-                  <SelectItem value="published" className="text-white">Published</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+          <div>
+            <Label className="text-white font-medium">Status</Label>
+            <Select
+              value={formData.status}
+              onValueChange={(value) => setFormData(prev => ({ ...prev, status: value }))}
+            >
+              <SelectTrigger className="input-glass mt-2">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="bg-navy-800 border-white/20">
+                <SelectItem value="draft" className="text-white">Draft</SelectItem>
+                <SelectItem value="scheduled" className="text-white">Scheduled</SelectItem>
+                <SelectItem value="published" className="text-white">Published</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           {formData.status === 'scheduled' && (

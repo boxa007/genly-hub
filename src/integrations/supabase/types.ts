@@ -101,6 +101,7 @@ export type Database = {
           created_at: string
           id: string
           image_style: string
+          image_url: string | null
           published_at: string | null
           scheduled_at: string | null
           status: string
@@ -115,6 +116,7 @@ export type Database = {
           created_at?: string
           id?: string
           image_style?: string
+          image_url?: string | null
           published_at?: string | null
           scheduled_at?: string | null
           status?: string
@@ -129,6 +131,7 @@ export type Database = {
           created_at?: string
           id?: string
           image_style?: string
+          image_url?: string | null
           published_at?: string | null
           scheduled_at?: string | null
           status?: string

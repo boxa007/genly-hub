@@ -280,6 +280,17 @@ const DashboardHome = ({ onTabChange }: DashboardHomeProps) => {
                 onClick={() => handleEditPost(content)}
                 className="flex items-center justify-between p-4 rounded-xl bg-white/5 hover:bg-white/10 transition-colors cursor-pointer group"
               >
+                {/* Image thumbnail if available */}
+                {content.image_url && (
+                  <div className="w-16 h-16 rounded-lg overflow-hidden mr-4 flex-shrink-0">
+                    <img 
+                      src={content.image_url} 
+                      alt={content.title}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                )}
+
                 <div className="flex-1">
                   <h3 className="text-white font-medium mb-1 group-hover:text-gradient transition-all">
                     {content.title}
