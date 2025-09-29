@@ -5,9 +5,15 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 
-const DashboardHome = () => {
+interface DashboardHomeProps {
+  onTabChange?: (tab: string) => void;
+}
+
+const DashboardHome = ({ onTabChange }: DashboardHomeProps) => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [userName, setUserName] = useState<string>('');
+  const [loadingProfile, setLoadingProfile] = useState(true);
   const [stats, setStats] = useState([
     {
       label: "Posts Created",
@@ -44,8 +50,30 @@ const DashboardHome = () => {
   useEffect(() => {
     if (user) {
       fetchDashboardData();
+      fetchUserProfile();
     }
   }, [user]);
+
+  const fetchUserProfile = async () => {
+    if (!user) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('user_profiles')
+        .select('full_name')
+        .eq('user_id', user.id)
+        .single();
+      
+      if (error) throw error;
+      
+      setUserName(data?.full_name || 'there');
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+      setUserName('there');
+    } finally {
+      setLoadingProfile(false);
+    }
+  };
 
   const fetchDashboardData = async () => {
     try {
@@ -125,10 +153,10 @@ const DashboardHome = () => {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="text-3xl font-bold text-white mb-2">
-            Welcome back, John! 👋
+            Hello, {loadingProfile ? '...' : userName}! 👋
           </h1>
           <p className="text-text-secondary text-lg">
-            Ready to create some amazing LinkedIn content today?
+            Ready to create amazing content today?
           </p>
         </div>
         
@@ -171,7 +199,10 @@ const DashboardHome = () => {
 
       {/* Quick Actions */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="card-glass card-hover p-6 rounded-2xl group cursor-pointer">
+        <div 
+          className="card-glass card-hover p-6 rounded-2xl group cursor-pointer"
+          onClick={() => navigate('/create-post')}
+        >
           <div className="flex items-center justify-between mb-4">
             <div className="w-12 h-12 bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl flex items-center justify-center">
               <Zap className="w-6 h-6 text-white" />
@@ -183,7 +214,10 @@ const DashboardHome = () => {
           <p className="text-text-secondary">Create engaging posts with AI assistance in seconds</p>
         </div>
 
-        <div className="card-glass card-hover p-6 rounded-2xl group cursor-pointer">
+        <div 
+          className="card-glass card-hover p-6 rounded-2xl group cursor-pointer"
+          onClick={() => onTabChange?.('schedule')}
+        >
           <div className="flex items-center justify-between mb-4">
             <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-xl flex items-center justify-center">
               <Calendar className="w-6 h-6 text-white" />
@@ -195,7 +229,10 @@ const DashboardHome = () => {
           <p className="text-text-secondary">Plan and schedule your content for optimal times</p>
         </div>
 
-        <div className="card-glass card-hover p-6 rounded-2xl group cursor-pointer">
+        <div 
+          className="card-glass card-hover p-6 rounded-2xl group cursor-pointer"
+          onClick={() => onTabChange?.('analytics')}
+        >
           <div className="flex items-center justify-between mb-4">
             <div className="w-12 h-12 bg-gradient-to-r from-cyan-600 to-green-600 rounded-xl flex items-center justify-center">
               <TrendingUp className="w-6 h-6 text-white" />

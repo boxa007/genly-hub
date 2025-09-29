@@ -1,12 +1,24 @@
 import { useState, useEffect } from "react";
-import { Search, Filter, Grid, List, Calendar, Edit, Trash2, Share, MoreHorizontal } from "lucide-react";
+import { Search, Grid, List, Edit, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import EditPostModal from "./EditPostModal";
 
+interface Content {
+  id: string;
+  title: string;
+  body: string;
+  content_type: string;
+  tone: string;
+  image_style: string;
+  status: string;
+  scheduled_at: string | null;
+  created_at: string;
+}
 
 const ContentLibrary = () => {
   const { user } = useAuth();
@@ -15,8 +27,10 @@ const ContentLibrary = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
-  const [content, setContent] = useState<any[]>([]);
+  const [content, setContent] = useState<Content[]>([]);
   const [loading, setLoading] = useState(true);
+  const [editingContent, setEditingContent] = useState<Content | null>(null);
+  const [editModalOpen, setEditModalOpen] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -57,16 +71,21 @@ const ContentLibrary = () => {
       
       setContent(prev => prev.filter(item => item.id !== contentId));
       toast({
-        title: "Deleted",
+        title: "Deleted!",
         description: "Content deleted successfully.",
       });
     } catch (error: any) {
       toast({
-        title: "Error",
+        title: "Delete failed",
         description: error.message || "Failed to delete content.",
         variant: "destructive",
       });
     }
+  };
+
+  const handleEditContent = (content: Content) => {
+    setEditingContent(content);
+    setEditModalOpen(true);
   };
 
   const filteredContent = content.filter(item => {
@@ -234,9 +253,6 @@ const ContentLibrary = () => {
                   </h3>
                 </div>
                 
-                <Button variant="ghost" size="icon" className="text-white/40 hover:text-white opacity-0 group-hover:opacity-100 transition-opacity">
-                  <MoreHorizontal className="w-4 h-4" />
-                </Button>
               </div>
 
               {/* Preview */}
@@ -247,21 +263,20 @@ const ContentLibrary = () => {
               {/* Footer */}
               <div className="flex items-center justify-between pt-4 border-t border-white/10">
                 <div className="text-text-secondary text-sm">
-                  <div className="flex items-center space-x-2">
-                    <Calendar className="w-4 h-4" />
-                    <span>{new Date(item.created_at).toLocaleDateString()}</span>
-                  </div>
+                  <span>{new Date(item.created_at).toLocaleDateString()}</span>
                   <div className="mt-1 font-medium">
                     {item.status === 'published' ? 'Published' : item.status === 'scheduled' ? 'Scheduled' : 'Draft'}
                   </div>
                 </div>
                 
                 <div className="flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <Button variant="ghost" size="icon" className="text-white/60 hover:text-white h-8 w-8">
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    onClick={() => handleEditContent(item)}
+                    className="text-white/60 hover:text-white h-8 w-8"
+                  >
                     <Edit className="w-4 h-4" />
-                  </Button>
-                  <Button variant="ghost" size="icon" className="text-white/60 hover:text-white h-8 w-8">
-                    <Share className="w-4 h-4" />
                   </Button>
                   <Button 
                     variant="ghost" 
@@ -311,11 +326,13 @@ const ContentLibrary = () => {
                 </div>
                 
                 <div className="flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <Button variant="ghost" size="icon" className="text-white/60 hover:text-white h-8 w-8">
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    onClick={() => handleEditContent(item)}
+                    className="text-white/60 hover:text-white h-8 w-8"
+                  >
                     <Edit className="w-4 h-4" />
-                  </Button>
-                  <Button variant="ghost" size="icon" className="text-white/60 hover:text-white h-8 w-8">
-                    <Share className="w-4 h-4" />
                   </Button>
                   <Button 
                     variant="ghost" 

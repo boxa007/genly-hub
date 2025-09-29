@@ -2,6 +2,9 @@ import { useState } from "react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import DashboardHome from "@/components/dashboard/DashboardHome";
 import ContentLibrary from "@/components/dashboard/ContentLibrary";
+import ScheduleCalendar from "@/components/dashboard/ScheduleCalendar";
+import Analytics from "@/components/dashboard/Analytics";
+import Settings from "@/components/dashboard/Settings";
 
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -9,23 +12,13 @@ const Dashboard = () => {
   const renderActiveComponent = () => {
     switch (activeTab) {
       case 'dashboard':
-        return <DashboardHome />;
+        return <DashboardHome onTabChange={setActiveTab} />;
       case 'library':
         return <ContentLibrary />;
       case 'schedule':
-        return (
-          <div className="card-glass rounded-2xl p-8 text-center">
-            <h2 className="text-2xl font-bold text-white mb-4">Schedule Coming Soon</h2>
-            <p className="text-text-secondary">Calendar scheduling feature is in development.</p>
-          </div>
-        );
+        return <ScheduleCalendar />;
       case 'analytics':
-        return (
-          <div className="card-glass rounded-2xl p-8 text-center">
-            <h2 className="text-2xl font-bold text-white mb-4">Analytics Coming Soon</h2>
-            <p className="text-text-secondary">Detailed analytics dashboard is in development.</p>
-          </div>
-        );
+        return <Analytics />;
       case 'integrations':
         return (
           <div className="card-glass rounded-2xl p-8 text-center">
@@ -41,14 +34,9 @@ const Dashboard = () => {
           </div>
         );
       case 'settings':
-        return (
-          <div className="card-glass rounded-2xl p-8 text-center">
-            <h2 className="text-2xl font-bold text-white mb-4">Settings Coming Soon</h2>
-            <p className="text-text-secondary">Account settings and preferences are in development.</p>
-          </div>
-        );
+        return <Settings />;
       default:
-        return <DashboardHome />;
+        return <DashboardHome onTabChange={setActiveTab} />;
     }
   };
 
