@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -8,6 +9,8 @@ import type { Session, User } from "@supabase/supabase-js";
 import Landing from "./pages/Landing";
 import OnboardingWizard from "./components/onboarding/OnboardingWizard";
 import Dashboard from "./pages/Dashboard";
+import Terms from "./pages/Terms";
+import Privacy from "./pages/Privacy";
 
 const queryClient = new QueryClient();
 
@@ -106,9 +109,15 @@ const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        {renderCurrentView()}
+        <Router>
+          <Toaster />
+          <Sonner />
+          <Routes>
+            <Route path="/terms" element={<Terms />} />
+            <Route path="/privacy" element={<Privacy />} />
+            <Route path="/*" element={renderCurrentView()} />
+          </Routes>
+        </Router>
       </TooltipProvider>
     </QueryClientProvider>
   );
