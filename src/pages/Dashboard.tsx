@@ -5,6 +5,7 @@ import ContentLibrary from "@/components/dashboard/ContentLibrary";
 import ScheduleCalendar from "@/components/dashboard/ScheduleCalendar";
 import Analytics from "@/components/dashboard/Analytics";
 import Settings from "@/components/dashboard/Settings";
+import Billing from "@/components/dashboard/Billing";
 
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -27,12 +28,7 @@ const Dashboard = () => {
           </div>
         );
       case 'billing':
-        return (
-          <div className="card-glass rounded-2xl p-8 text-center">
-            <h2 className="text-2xl font-bold text-white mb-4">Billing Coming Soon</h2>
-            <p className="text-text-secondary">Billing and subscription management is in development.</p>
-          </div>
-        );
+        return <Billing />;
       case 'settings':
         return <Settings />;
       default:

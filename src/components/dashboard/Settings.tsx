@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Upload, Download, Trash2, Check, Zap } from "lucide-react";
+import { Upload, Download, Trash2 } from "lucide-react";
 
 interface UserProfile {
   full_name: string;
@@ -39,51 +39,6 @@ interface Document {
   path: string;
   created_at: string;
 }
-
-const pricingPlans = [
-  {
-    name: "Starter",
-    price: 29,
-    features: [
-      "20 AI-generated posts per month",
-      "5 lead magnets",
-      "Basic analytics",
-      "Content library",
-      "Email support"
-    ],
-    gradient: "from-gray-500 to-gray-600"
-  },
-  {
-    name: "Professional",
-    price: 79,
-    features: [
-      "100 AI-generated posts per month",
-      "20 lead magnets",
-      "Advanced analytics",
-      "Content scheduling",
-      "Buffer integration",
-      "Priority support",
-      "Custom templates"
-    ],
-    popular: true,
-    gradient: "from-purple-500 to-blue-500"
-  },
-  {
-    name: "Enterprise",
-    price: 199,
-    features: [
-      "Unlimited AI-generated posts",
-      "Unlimited lead magnets",
-      "Advanced team collaboration",
-      "White-label solution",
-      "API access",
-      "Custom integrations",
-      "Dedicated account manager",
-      "24/7 priority support"
-    ],
-    gradient: "from-blue-500 to-cyan-500"
-  }
-];
 
 const Settings = () => {
   const { user } = useAuth();
@@ -539,72 +494,6 @@ const Settings = () => {
             Save Company Info
           </Button>
         </div>
-      </div>
-
-      {/* Billing */}
-      <div className="card-glass rounded-2xl p-8">
-        <h2 className="text-2xl font-bold text-white mb-6">Billing & Plans</h2>
-        
-        <div className="mb-8 p-4 bg-white/5 rounded-lg border border-white/10">
-          <p className="text-text-secondary">Current Plan:</p>
-          <p className="text-2xl font-bold text-white mt-1">
-            {profile.subscription_tier === 'trial' && 'Trial (14 days free)'}
-            {profile.subscription_tier === 'starter' && 'Starter Plan'}
-            {profile.subscription_tier === 'professional' && 'Professional Plan'}
-            {profile.subscription_tier === 'enterprise' && 'Enterprise Plan'}
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-          {pricingPlans.map((plan) => (
-            <div
-              key={plan.name}
-              className={`relative card-glass rounded-xl p-6 ${
-                plan.popular ? 'ring-2 ring-purple-500/50' : ''
-              }`}
-            >
-              {plan.popular && (
-                <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-gradient-primary text-white px-4 py-1 rounded-full text-sm font-semibold">
-                  Most Popular
-                </div>
-              )}
-
-              <div className="text-center mb-6">
-                <div className={`w-12 h-12 bg-gradient-to-r ${plan.gradient} rounded-xl flex items-center justify-center mx-auto mb-4`}>
-                  <Zap className="w-6 h-6 text-white" />
-                </div>
-                <h3 className="text-xl font-bold text-white mb-2">{plan.name}</h3>
-                <div className="flex items-baseline justify-center">
-                  <span className="text-3xl font-bold text-white">${plan.price}</span>
-                  <span className="text-text-secondary ml-1">/month</span>
-                </div>
-              </div>
-
-              <ul className="space-y-3 mb-6">
-                {plan.features.map((feature, idx) => (
-                  <li key={idx} className="flex items-start text-sm">
-                    <Check className="w-4 h-4 text-success flex-shrink-0 mt-0.5 mr-2" />
-                    <span className="text-text-secondary">{feature}</span>
-                  </li>
-                ))}
-              </ul>
-
-              <Button
-                className={plan.popular ? 'btn-hero w-full' : 'btn-glass w-full'}
-                disabled={profile.subscription_tier === plan.name.toLowerCase()}
-              >
-                {profile.subscription_tier === plan.name.toLowerCase() 
-                  ? 'Current Plan' 
-                  : `Upgrade to ${plan.name}`
-                }
-              </Button>
-            </div>
-          ))}
-        </div>
-
-        <p className="text-center text-text-secondary text-sm">
-          14-day money-back guarantee on all plans
-        </p>
       </div>
 
       {/* Competitors */}
