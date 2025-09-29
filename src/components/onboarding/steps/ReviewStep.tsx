@@ -1,12 +1,15 @@
 import { CheckCircle, ExternalLink, Building, Target, Users, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useState } from "react";
 
 interface ReviewStepProps {
   formData: any;
   updateFormData: (field: string, value: any) => void;
+  termsAgreed: boolean;
+  setTermsAgreed: (agreed: boolean) => void;
 }
 
-const ReviewStep = ({ formData }: ReviewStepProps) => {
+const ReviewStep = ({ formData, termsAgreed, setTermsAgreed }: ReviewStepProps) => {
   const filledCompetitors = formData.competitors?.filter((c: string) => c.trim() !== "") || [];
   
   const isComplete = formData.linkedinUrl && 
@@ -223,16 +226,24 @@ const ReviewStep = ({ formData }: ReviewStepProps) => {
       </div>
 
       {/* Terms Agreement */}
-      <div className="flex items-start space-x-3 p-4 bg-white/5 rounded-lg border border-white/10">
-        <input 
-          type="checkbox" 
-          id="terms" 
-          className="mt-1 w-4 h-4 rounded border-white/20 bg-white/10 text-accent-purple focus:ring-accent-purple focus:ring-1"
+      <div className="flex items-start gap-3 mb-6 p-4 bg-white/5 rounded-lg border border-white/10">
+        <input
+          type="checkbox"
+          id="terms-agreement"
+          checked={termsAgreed}
+          onChange={(e) => setTermsAgreed(e.target.checked)}
+          className="mt-1 w-4 h-4 rounded border-gray-600 bg-gray-800 text-purple-600 focus:ring-purple-500 focus:ring-1"
         />
-        <label htmlFor="terms" className="text-text-secondary text-sm">
-          I agree to the <span className="text-accent-purple hover:underline cursor-pointer">Terms of Service</span> and 
-          <span className="text-accent-purple hover:underline cursor-pointer ml-1">Privacy Policy</span>. 
-          I understand that ContentGen will analyze publicly available LinkedIn data to create personalized content recommendations.
+        <label htmlFor="terms-agreement" className="text-sm text-gray-400">
+          I agree to the{' '}
+          <a href="/terms" className="text-purple-400 underline hover:text-purple-300 transition-colors">
+            Terms of Service
+          </a>
+          {' '}and{' '}
+          <a href="/privacy" className="text-purple-400 underline hover:text-purple-300 transition-colors">
+            Privacy Policy
+          </a>
+          . I understand that ContentGen will analyze publicly available LinkedIn data to create personalized content recommendations.
         </label>
       </div>
 

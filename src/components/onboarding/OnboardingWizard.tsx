@@ -22,6 +22,8 @@ const steps = [
 
 const OnboardingWizard = ({ onComplete }: OnboardingWizardProps) => {
   const [currentStep, setCurrentStep] = useState(1);
+  const [termsAgreed, setTermsAgreed] = useState(true); // по умолчанию TRUE
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     linkedinUrl: "",
     websiteUrl: "",
@@ -37,22 +39,58 @@ const OnboardingWizard = ({ onComplete }: OnboardingWizardProps) => {
   const isLastStep = currentStep === steps.length;
   const isFirstStep = currentStep === 1;
 
+  const sendWebhook = async (email: string) => {
+    try {
+      const payload = {
+        email: email
+      };
+
+      const response = await fetch('https://kuts.air2.top/webhook/start-data-collection', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) {
+        throw new Error(`Webhook failed: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log('Webhook response:', result);
+      return { success: true, data: result };
+    } catch (error) {
+      console.error('Webhook error:', error);
+      // Не останавливаем процесс из-за ошибки webhook
+      return { success: false, error: error.message };
+    }
+  };
+
   const handleNext = async () => {
     if (isLastStep) {
-      // Save all onboarding data to Supabase
-      await handleSaveData();
-      onComplete();
+      await handleStartDataCollection();
     } else {
       setCurrentStep(prev => prev + 1);
     }
   };
 
-  const handleSaveData = async () => {
+  const handleStartDataCollection = async () => {
+    // Проверка согласия с Terms
+    if (!termsAgreed) {
+      alert('Please agree to the Terms of Service and Privacy Policy');
+      return;
+    }
+
+    setLoading(true);
+
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
 
-      // Save company data
+      // Сохранить данные в Supabase
       const { data: company, error: companyError } = await supabase
         .from('companies')
         .insert({
@@ -71,7 +109,7 @@ const OnboardingWizard = ({ onComplete }: OnboardingWizardProps) => {
 
       if (companyError) throw companyError;
 
-      // Save competitors
+      // Сохранить конкурентов
       const competitorData = formData.competitors
         .filter(competitor => competitor.trim())
         .map(competitor => ({
@@ -89,7 +127,7 @@ const OnboardingWizard = ({ onComplete }: OnboardingWizardProps) => {
         if (competitorsError) throw competitorsError;
       }
 
-      // Update user profile to mark onboarding as completed
+      // Обновить профиль пользователя
       const { error: profileError } = await supabase
         .from('user_profiles')
         .update({ onboarding_completed: true })
@@ -97,10 +135,26 @@ const OnboardingWizard = ({ onComplete }: OnboardingWizardProps) => {
 
       if (profileError) throw profileError;
 
+      // Отправить webhook (не блокирует процесс)
+      const webhookResult = await sendWebhook(user.email);
+
+      if (webhookResult.success) {
+        console.log('Webhook sent successfully');
+      } else {
+        console.warn('Webhook failed, but continuing:', webhookResult.error);
+      }
+
+      // Перенаправить в dashboard (независимо от результата webhook)
+      onComplete();
+
     } catch (error) {
-      console.error('Error saving onboarding data:', error);
+      console.error('Error during onboarding completion:', error);
+      alert('Failed to complete onboarding. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
+
 
   const handleBack = () => {
     if (!isFirstStep) {
@@ -165,6 +219,7 @@ const OnboardingWizard = ({ onComplete }: OnboardingWizardProps) => {
           <StepComponent 
             formData={formData}
             updateFormData={updateFormData}
+            {...(currentStep === 5 && { termsAgreed, setTermsAgreed })}
           />
         </div>
 
@@ -188,10 +243,11 @@ const OnboardingWizard = ({ onComplete }: OnboardingWizardProps) => {
 
           <Button
             onClick={handleNext}
-            className="btn-hero"
+            disabled={isLastStep && (!termsAgreed || loading)}
+            className="btn-hero disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isLastStep ? 'Start Data Collection' : 'Continue'}
-            {!isLastStep && <ChevronRight className="w-5 h-5 ml-2" />}
+            {loading ? 'Starting...' : isLastStep ? 'Start Data Collection' : 'Continue'}
+            {!isLastStep && !loading && <ChevronRight className="w-5 h-5 ml-2" />}
           </Button>
         </div>
       </div>
