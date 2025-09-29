@@ -83,7 +83,7 @@ const HeroSection = ({ onGetStarted }: HeroSectionProps) => {
         </div>
 
         {/* Trust Indicators */}
-        <div className="mt-16 animate-fade-in" style={{ animationDelay: '1s' }}>
+     {/*   <div className="mt-16 animate-fade-in" style={{ animationDelay: '1s' }}>
           <p className="text-text-muted mb-6">Trusted by professionals at</p>
           <div className="flex items-center justify-center space-x-8 opacity-60">
             {['Google', 'Microsoft', 'Apple', 'Meta', 'Netflix'].map((company) => (
@@ -92,7 +92,7 @@ const HeroSection = ({ onGetStarted }: HeroSectionProps) => {
               </div>
             ))}
           </div>
-        </div>
+        </div> */}
       </div>
 
       {/* Scroll Indicator */}
