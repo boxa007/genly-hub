@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { ChevronLeft, ChevronRight, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
 import LinkedInStep from "./steps/LinkedInStep";
 import CompanyStep from "./steps/CompanyStep";
 import ICPStep from "./steps/ICPStep";
@@ -36,11 +37,68 @@ const OnboardingWizard = ({ onComplete }: OnboardingWizardProps) => {
   const isLastStep = currentStep === steps.length;
   const isFirstStep = currentStep === 1;
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (isLastStep) {
+      // Save all onboarding data to Supabase
+      await handleSaveData();
       onComplete();
     } else {
       setCurrentStep(prev => prev + 1);
+    }
+  };
+
+  const handleSaveData = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Save company data
+      const { data: company, error: companyError } = await supabase
+        .from('companies')
+        .insert({
+          user_id: user.id,
+          linkedin_url: formData.linkedinUrl,
+          website_url: formData.websiteUrl,
+          company_description: formData.companyDescription,
+          main_message: formData.mainMessage,
+          icp_description: formData.icpDescription,
+          industry: formData.industry,
+          company_size: formData.companySize,
+          data_collection_status: 'in_progress'
+        })
+        .select()
+        .single();
+
+      if (companyError) throw companyError;
+
+      // Save competitors
+      const competitorData = formData.competitors
+        .filter(competitor => competitor.trim())
+        .map(competitor => ({
+          company_id: company.id,
+          name: competitor,
+          linkedin_url: `https://linkedin.com/company/${competitor.toLowerCase().replace(/\s+/g, '-')}`,
+          website_url: `https://${competitor.toLowerCase().replace(/\s+/g, '')}.com`
+        }));
+
+      if (competitorData.length > 0) {
+        const { error: competitorsError } = await supabase
+          .from('competitors')
+          .insert(competitorData);
+
+        if (competitorsError) throw competitorsError;
+      }
+
+      // Update user profile to mark onboarding as completed
+      const { error: profileError } = await supabase
+        .from('user_profiles')
+        .update({ onboarding_completed: true })
+        .eq('user_id', user.id);
+
+      if (profileError) throw profileError;
+
+    } catch (error) {
+      console.error('Error saving onboarding data:', error);
     }
   };
 

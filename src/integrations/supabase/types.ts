@@ -14,7 +14,230 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      companies: {
+        Row: {
+          company_description: string | null
+          company_size: string | null
+          created_at: string
+          data_collection_status: string
+          icp_description: string | null
+          id: string
+          industry: string | null
+          linkedin_url: string | null
+          main_message: string | null
+          updated_at: string
+          user_id: string
+          website_url: string | null
+        }
+        Insert: {
+          company_description?: string | null
+          company_size?: string | null
+          created_at?: string
+          data_collection_status?: string
+          icp_description?: string | null
+          id?: string
+          industry?: string | null
+          linkedin_url?: string | null
+          main_message?: string | null
+          updated_at?: string
+          user_id: string
+          website_url?: string | null
+        }
+        Update: {
+          company_description?: string | null
+          company_size?: string | null
+          created_at?: string
+          data_collection_status?: string
+          icp_description?: string | null
+          id?: string
+          industry?: string | null
+          linkedin_url?: string | null
+          main_message?: string | null
+          updated_at?: string
+          user_id?: string
+          website_url?: string | null
+        }
+        Relationships: []
+      }
+      competitors: {
+        Row: {
+          company_id: string
+          created_at: string
+          id: string
+          linkedin_url: string | null
+          name: string
+          website_url: string | null
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          id?: string
+          linkedin_url?: string | null
+          name: string
+          website_url?: string | null
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          id?: string
+          linkedin_url?: string | null
+          name?: string
+          website_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "competitors_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      content: {
+        Row: {
+          body: string
+          content_type: string
+          created_at: string
+          id: string
+          image_style: string
+          published_at: string | null
+          scheduled_at: string | null
+          status: string
+          title: string
+          tone: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          body: string
+          content_type: string
+          created_at?: string
+          id?: string
+          image_style?: string
+          published_at?: string | null
+          scheduled_at?: string | null
+          status?: string
+          title: string
+          tone?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          body?: string
+          content_type?: string
+          created_at?: string
+          id?: string
+          image_style?: string
+          published_at?: string | null
+          scheduled_at?: string | null
+          status?: string
+          title?: string
+          tone?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      subscriptions: {
+        Row: {
+          created_at: string
+          current_period_end: string | null
+          id: string
+          plan: string
+          status: string
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          current_period_end?: string | null
+          id?: string
+          plan: string
+          status: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          current_period_end?: string | null
+          id?: string
+          plan?: string
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      usage: {
+        Row: {
+          count: number
+          created_at: string
+          feature_type: string
+          id: string
+          reset_date: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          count?: number
+          created_at?: string
+          feature_type: string
+          id?: string
+          reset_date: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          count?: number
+          created_at?: string
+          feature_type?: string
+          id?: string
+          reset_date?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_profiles: {
+        Row: {
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          onboarding_completed: boolean
+          subscription_tier: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          full_name: string
+          id?: string
+          onboarding_completed?: boolean
+          subscription_tier?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          full_name?: string
+          id?: string
+          onboarding_completed?: boolean
+          subscription_tier?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
