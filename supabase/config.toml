@@ -1,1 +1,5 @@
 project_id = "mpexfodveltykplhvfiz"
+
+[auth]
+jwt_expiry = 604800  # 7 дней (в секундах)
+refresh_token_expiry = 31536000  # 1 год (в секундах)

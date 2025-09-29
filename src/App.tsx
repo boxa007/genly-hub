@@ -135,35 +135,46 @@ const App = () => {
     );
   }
 
-  const renderCurrentView = () => {
-    if (appState === 'dashboard') {
-      return (
-        <Router>
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/create-post" element={<CreatePost />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </Router>
-      );
-    }
-
-    switch (appState) {
-      case 'landing':
-        return <Landing onAuthSuccess={handleAuthSuccess} />;
-      case 'onboarding':
-        return <OnboardingWizard onComplete={handleOnboardingComplete} />;
-      default:
-        return <Landing onAuthSuccess={handleAuthSuccess} />;
-    }
-  };
-
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />
         <Sonner />
-        {renderCurrentView()}
+        <Router>
+          <Routes>
+            <Route 
+              path="/" 
+              element={
+                appState === 'dashboard' ? (
+                  <Dashboard />
+                ) : (
+                  <Landing onAuthSuccess={handleAuthSuccess} />
+                )
+              } 
+            />
+            <Route 
+              path="/create-post" 
+              element={
+                appState === 'dashboard' ? (
+                  <CreatePost />
+                ) : (
+                  <Navigate to="/" replace />
+                )
+              } 
+            />
+            <Route 
+              path="/onboarding" 
+              element={
+                appState === 'onboarding' ? (
+                  <OnboardingWizard onComplete={handleOnboardingComplete} />
+                ) : (
+                  <Navigate to="/" replace />
+                )
+              } 
+            />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </Router>
       </TooltipProvider>
     </QueryClientProvider>
   );
