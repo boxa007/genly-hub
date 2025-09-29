@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { PlusCircle, TrendingUp, FileText, Calendar, Users, Zap, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 
 const DashboardHome = () => {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [stats, setStats] = useState([
     {
@@ -132,7 +134,7 @@ const DashboardHome = () => {
         
         <Button 
           className="btn-hero mt-4 md:mt-0"
-          onClick={() => window.location.href = '/create-post'}
+          onClick={() => navigate('/create-post')}
         >
           <PlusCircle className="w-5 h-5 mr-2" />
           Create New Content
@@ -259,7 +261,7 @@ const DashboardHome = () => {
               <p className="text-text-secondary">No content created yet.</p>
               <Button 
                 className="btn-hero mt-4"
-                onClick={() => window.location.href = '/create-post'}
+                onClick={() => navigate('/create-post')}
               >
                 <PlusCircle className="w-4 h-4 mr-2" />
                 Create Your First Post

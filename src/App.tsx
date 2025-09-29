@@ -64,14 +64,16 @@ const App = () => {
 
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
         clearLoadingTimeout();
         setSession(session);
         setUser(session?.user ?? null);
         
         if (session?.user) {
           setLoadingTimeout();
-          await checkUserProfile(session.user.id);
+          setTimeout(() => {
+            checkUserProfile(session.user.id);
+          }, 0);
         } else {
           setAppState('landing');
           setLoading(false);
@@ -87,6 +89,10 @@ const App = () => {
         
         if (error) {
           console.error('Session fetch error:', error);
+          // Clear invalid session
+          if (error.message.includes('Invalid Refresh Token') || error.message.includes('refresh_token')) {
+            await supabase.auth.signOut();
+          }
           setAppState('landing');
           clearLoadingTimeout();
           setLoading(false);

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { 
   LayoutDashboard, 
   PlusCircle, 
@@ -33,6 +34,7 @@ interface DashboardLayoutProps {
 }
 
 const DashboardLayout = ({ activeTab, onTabChange, children }: DashboardLayoutProps) => {
+  const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   return (
@@ -79,7 +81,7 @@ const DashboardLayout = ({ activeTab, onTabChange, children }: DashboardLayoutPr
             {/* Create Content Button */}
             <button
               onClick={() => {
-                window.location.href = '/create-post';
+                navigate('/create-post');
                 setIsSidebarOpen(false);
               }}
               className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-all duration-200 text-text-secondary hover:text-white hover:bg-white/5"
