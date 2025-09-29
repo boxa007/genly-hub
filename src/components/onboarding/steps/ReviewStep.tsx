@@ -236,13 +236,19 @@ const ReviewStep = ({ formData, termsAgreed, setTermsAgreed }: ReviewStepProps) 
         />
         <label htmlFor="terms-agreement" className="text-sm text-gray-400">
           I agree to the{' '}
-          <a href="/terms" className="text-purple-400 underline hover:text-purple-300 transition-colors">
+          <button 
+            onClick={() => window.open('#', '_blank')} 
+            className="text-purple-400 underline hover:text-purple-300 transition-colors"
+          >
             Terms of Service
-          </a>
+          </button>
           {' '}and{' '}
-          <a href="/privacy" className="text-purple-400 underline hover:text-purple-300 transition-colors">
+          <button 
+            onClick={() => window.open('#', '_blank')} 
+            className="text-purple-400 underline hover:text-purple-300 transition-colors"
+          >
             Privacy Policy
-          </a>
+          </button>
           . I understand that ContentGen will analyze publicly available LinkedIn data to create personalized content recommendations.
         </label>
       </div>
