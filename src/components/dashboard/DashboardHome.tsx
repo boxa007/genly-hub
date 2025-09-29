@@ -1,61 +1,121 @@
+import { useState, useEffect } from "react";
 import { PlusCircle, TrendingUp, FileText, Calendar, Users, Zap, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 const DashboardHome = () => {
-  const stats = [
+  const { user } = useAuth();
+  const [stats, setStats] = useState([
     {
       label: "Posts Created",
-      value: "23",
-      change: "+12%",
+      value: "0",
+      change: "+0%",
       icon: FileText,
       color: "text-accent-purple"
     },
     {
       label: "Total Engagement",
-      value: "2.4K",
-      change: "+34%",
+      value: "0",
+      change: "+0%",
       icon: TrendingUp,
       color: "text-accent-blue"
     },
     {
       label: "Posts Scheduled",
-      value: "8",
-      change: "+5",
+      value: "0",
+      change: "+0",
       icon: Calendar,
       color: "text-accent-cyan"
     },
     {
       label: "Followers Gained",
-      value: "156",
-      change: "+28%",
+      value: "0",
+      change: "+0%",
       icon: Users,
       color: "text-success"
     }
-  ];
+  ]);
+  const [recentContent, setRecentContent] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const recentContent = [
-    {
-      title: "5 Marketing Automation Mistakes That Are Costing You Leads",
-      type: "Educational Post",
-      engagement: "127 likes, 23 comments",
-      date: "2 hours ago",
-      status: "Published"
-    },
-    {
-      title: "Just had an incredible conversation with a client...",
-      type: "Engagement Post",
-      engagement: "89 likes, 15 comments",
-      date: "1 day ago",
-      status: "Published"
-    },
-    {
-      title: "The Ultimate Guide to B2B Content Marketing",
-      type: "Lead Magnet",
-      engagement: "45 downloads",
-      date: "3 days ago",
-      status: "Scheduled"
+  useEffect(() => {
+    if (user) {
+      fetchDashboardData();
     }
-  ];
+  }, [user]);
+
+  const fetchDashboardData = async () => {
+    try {
+      // Fetch content stats
+      const { data: content, error: contentError } = await supabase
+        .from('content')
+        .select('*')
+        .eq('user_id', user?.id)
+        .order('created_at', { ascending: false });
+
+      if (contentError) throw contentError;
+
+      // Calculate stats
+      const totalPosts = content?.length || 0;
+      const scheduledPosts = content?.filter(c => c.status === 'scheduled').length || 0;
+      const publishedPosts = content?.filter(c => c.status === 'published').length || 0;
+
+      setStats([
+        {
+          label: "Posts Created",
+          value: totalPosts.toString(),
+          change: "+12%",
+          icon: FileText,
+          color: "text-accent-purple"
+        },
+        {
+          label: "Total Engagement",
+          value: "0", // Would calculate from actual engagement data
+          change: "+0%",
+          icon: TrendingUp,
+          color: "text-accent-blue"
+        },
+        {
+          label: "Posts Scheduled",
+          value: scheduledPosts.toString(),
+          change: `+${scheduledPosts}`,
+          icon: Calendar,
+          color: "text-accent-cyan"
+        },
+        {
+          label: "Published Posts",
+          value: publishedPosts.toString(),
+          change: `+${publishedPosts}`,
+          icon: Users,
+          color: "text-success"
+        }
+      ]);
+
+      // Set recent content
+      setRecentContent(content?.slice(0, 3) || []);
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffTime = Math.abs(now.getTime() - date.getTime());
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 0) {
+      const diffHours = Math.floor(diffTime / (1000 * 60 * 60));
+      return diffHours === 0 ? 'Just now' : `${diffHours} hours ago`;
+    } else if (diffDays === 1) {
+      return '1 day ago';
+    } else {
+      return `${diffDays} days ago`;
+    }
+  };
 
   return (
     <div className="space-y-8 max-w-7xl">
@@ -154,36 +214,52 @@ const DashboardHome = () => {
         </div>
 
         <div className="space-y-4">
-          {recentContent.map((content, index) => (
-            <div 
-              key={index}
-              className="flex items-center justify-between p-4 rounded-xl bg-white/5 hover:bg-white/10 transition-colors cursor-pointer group"
-            >
-              <div className="flex-1">
-                <h3 className="text-white font-medium mb-1 group-hover:text-gradient transition-all">
-                  {content.title}
-                </h3>
-                <div className="flex items-center space-x-4 text-sm text-text-secondary">
-                  <span className="px-2 py-1 bg-accent-purple/20 text-accent-purple rounded-md">
-                    {content.type}
+          {loading ? (
+            <div className="text-center py-8">
+              <div className="w-8 h-8 border-2 border-accent-purple border-t-transparent rounded-full animate-spin mx-auto"></div>
+              <p className="text-text-secondary mt-2">Loading content...</p>
+            </div>
+          ) : recentContent.length > 0 ? (
+            recentContent.map((content, index) => (
+              <div 
+                key={content.id}
+                className="flex items-center justify-between p-4 rounded-xl bg-white/5 hover:bg-white/10 transition-colors cursor-pointer group"
+              >
+                <div className="flex-1">
+                  <h3 className="text-white font-medium mb-1 group-hover:text-gradient transition-all">
+                    {content.title}
+                  </h3>
+                  <div className="flex items-center space-x-4 text-sm text-text-secondary">
+                    <span className="px-2 py-1 bg-accent-purple/20 text-accent-purple rounded-md">
+                      {content.content_type.replace('_', ' ')}
+                    </span>
+                    <span>{formatDate(content.created_at)}</span>
+                  </div>
+                </div>
+                
+                <div className="flex items-center space-x-3">
+                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                    content.status === 'published' 
+                      ? 'bg-success/20 text-success' 
+                      : content.status === 'scheduled'
+                      ? 'bg-warning/20 text-warning'
+                      : 'bg-white/20 text-white'
+                  }`}>
+                    {content.status.charAt(0).toUpperCase() + content.status.slice(1)}
                   </span>
-                  <span>{content.engagement}</span>
-                  <span>{content.date}</span>
+                  <ArrowRight className="w-4 h-4 text-white/40 group-hover:text-white transition-colors" />
                 </div>
               </div>
-              
-              <div className="flex items-center space-x-3">
-                <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                  content.status === 'Published' 
-                    ? 'bg-success/20 text-success' 
-                    : 'bg-warning/20 text-warning'
-                }`}>
-                  {content.status}
-                </span>
-                <ArrowRight className="w-4 h-4 text-white/40 group-hover:text-white transition-colors" />
-              </div>
+            ))
+          ) : (
+            <div className="text-center py-8">
+              <p className="text-text-secondary">No content created yet.</p>
+              <Button className="btn-hero mt-4">
+                <PlusCircle className="w-4 h-4 mr-2" />
+                Create Your First Post
+              </Button>
             </div>
-          ))}
+          )}
         </div>
       </div>
 

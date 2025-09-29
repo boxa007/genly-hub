@@ -1,82 +1,78 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Search, Filter, Grid, List, Calendar, Edit, Trash2, Share, MoreHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
 
-const mockContent = [
-  {
-    id: 1,
-    title: "5 Marketing Automation Mistakes That Are Costing You Leads",
-    type: "Educational Post",
-    status: "Published",
-    engagement: "127 likes, 23 comments",
-    date: "2024-01-15",
-    preview: "📊 The biggest mistake I see companies make with LinkedIn? Treating it like Facebook...",
-    hashtags: ["#MarketingAutomation", "#LeadGeneration", "#B2BMarketing"]
-  },
-  {
-    id: 2,
-    title: "Just had an incredible conversation with a client...",
-    type: "Engagement Post",
-    status: "Published",
-    engagement: "89 likes, 15 comments",
-    date: "2024-01-14",
-    preview: "🚀 Just had an incredible conversation with a potential client who said something that stopped me in my tracks...",
-    hashtags: ["#ClientSuccess", "#BusinessStrategy", "#Innovation"]
-  },
-  {
-    id: 3,
-    title: "The Ultimate Guide to B2B Content Marketing",
-    type: "Lead Magnet",
-    status: "Scheduled",
-    engagement: "45 downloads",
-    date: "2024-01-16",
-    preview: "🎯 Want to know the exact framework we use to generate 10x more qualified leads?...",
-    hashtags: ["#ContentMarketing", "#B2B", "#LeadGeneration"]
-  },
-  {
-    id: 4,
-    title: "Behind the Scenes: How We Built Our Marketing Team",
-    type: "Company Update",
-    status: "Draft",
-    engagement: "-",
-    date: "2024-01-13",
-    preview: "🎉 Exciting news! We just hit a major milestone at ContentGen...",
-    hashtags: ["#TeamBuilding", "#CompanyUpdate", "#Growth"]
-  },
-  {
-    id: 5,
-    title: "3 LinkedIn Profile Optimization Tips",
-    type: "Educational Post",
-    status: "Published",
-    engagement: "156 likes, 31 comments",
-    date: "2024-01-12",
-    preview: "✨ Your LinkedIn profile is your digital business card. Here's how to make it shine...",
-    hashtags: ["#LinkedIn", "#PersonalBrand", "#Professional"]
-  },
-  {
-    id: 6,
-    title: "What's Your Biggest Marketing Challenge?",
-    type: "Engagement Post",
-    status: "Published",
-    engagement: "203 likes, 47 comments",
-    date: "2024-01-11",
-    preview: "❓ I'm curious - what's the biggest marketing challenge you're facing right now?...",
-    hashtags: ["#Marketing", "#Community", "#Discussion"]
-  }
-];
 
 const ContentLibrary = () => {
+  const { user } = useAuth();
+  const { toast } = useToast();
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
+  const [content, setContent] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const filteredContent = mockContent.filter(item => {
+  useEffect(() => {
+    if (user) {
+      fetchContent();
+    }
+  }, [user]);
+
+  const fetchContent = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('content')
+        .select('*')
+        .eq('user_id', user?.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setContent(data || []);
+    } catch (error) {
+      console.error('Error fetching content:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load content library.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteContent = async (contentId: string) => {
+    try {
+      const { error } = await supabase
+        .from('content')
+        .delete()
+        .eq('id', contentId);
+
+      if (error) throw error;
+      
+      setContent(prev => prev.filter(item => item.id !== contentId));
+      toast({
+        title: "Deleted",
+        description: "Content deleted successfully.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete content.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const filteredContent = content.filter(item => {
     const matchesSearch = item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         item.preview.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesType = filterType === 'all' || item.type === filterType;
+                         item.body.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesType = filterType === 'all' || item.content_type === filterType;
     const matchesStatus = filterStatus === 'all' || item.status === filterStatus;
     
     return matchesSearch && matchesType && matchesStatus;
@@ -84,11 +80,11 @@ const ContentLibrary = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'Published':
+      case 'published':
         return 'bg-success/20 text-success';
-      case 'Scheduled':
+      case 'scheduled':
         return 'bg-warning/20 text-warning';
-      case 'Draft':
+      case 'draft':
         return 'bg-white/20 text-white';
       default:
         return 'bg-white/20 text-white';
@@ -97,17 +93,33 @@ const ContentLibrary = () => {
 
   const getTypeColor = (type: string) => {
     switch (type) {
-      case 'Educational Post':
+      case 'educational':
         return 'bg-accent-purple/20 text-accent-purple';
-      case 'Engagement Post':
+      case 'engagement':
         return 'bg-accent-blue/20 text-accent-blue';
-      case 'Lead Magnet':
+      case 'lead-magnet':
+      case 'lead_magnet':
         return 'bg-accent-cyan/20 text-accent-cyan';
-      case 'Company Update':
+      case 'company-update':
+      case 'company_update':
         return 'bg-success/20 text-success';
       default:
         return 'bg-white/20 text-white';
     }
+  };
+
+  const getImageStyleBadge = (imageStyle: string) => {
+    const styles: Record<string, string> = {
+      'realistic_photo': 'Realistic Photo',
+      'digital_illustration': 'Digital Illustration',
+      'abstract_art': 'Abstract Art',
+      'minimalist': 'Minimalist',
+      '3d_render': '3D Render',
+      'watercolor': 'Watercolor',
+      'line_art': 'Line Art',
+      'corporate': 'Corporate'
+    };
+    return styles[imageStyle] || imageStyle;
   };
 
   return (
@@ -165,10 +177,10 @@ const ContentLibrary = () => {
             </SelectTrigger>
             <SelectContent className="bg-navy-800 border-white/20">
               <SelectItem value="all" className="text-white">All Types</SelectItem>
-              <SelectItem value="Educational Post" className="text-white">Educational Post</SelectItem>
-              <SelectItem value="Engagement Post" className="text-white">Engagement Post</SelectItem>
-              <SelectItem value="Lead Magnet" className="text-white">Lead Magnet</SelectItem>
-              <SelectItem value="Company Update" className="text-white">Company Update</SelectItem>
+              <SelectItem value="educational" className="text-white">Educational</SelectItem>
+              <SelectItem value="engagement" className="text-white">Engagement</SelectItem>
+              <SelectItem value="lead-magnet" className="text-white">Lead Magnet</SelectItem>
+              <SelectItem value="company-update" className="text-white">Company Update</SelectItem>
             </SelectContent>
           </Select>
           
@@ -178,16 +190,21 @@ const ContentLibrary = () => {
             </SelectTrigger>
             <SelectContent className="bg-navy-800 border-white/20">
               <SelectItem value="all" className="text-white">All Status</SelectItem>
-              <SelectItem value="Published" className="text-white">Published</SelectItem>
-              <SelectItem value="Scheduled" className="text-white">Scheduled</SelectItem>
-              <SelectItem value="Draft" className="text-white">Draft</SelectItem>
+              <SelectItem value="published" className="text-white">Published</SelectItem>
+              <SelectItem value="scheduled" className="text-white">Scheduled</SelectItem>
+              <SelectItem value="draft" className="text-white">Draft</SelectItem>
             </SelectContent>
           </Select>
         </div>
       </div>
 
       {/* Content Grid/List */}
-      {viewMode === 'grid' ? (
+      {loading ? (
+        <div className="text-center py-16">
+          <div className="w-8 h-8 border-2 border-accent-purple border-t-transparent rounded-full animate-spin mx-auto"></div>
+          <p className="text-text-secondary mt-4">Loading your content...</p>
+        </div>
+      ) : viewMode === 'grid' ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredContent.map((item, index) => (
             <div 
@@ -199,12 +216,17 @@ const ContentLibrary = () => {
               <div className="flex items-start justify-between mb-4">
                 <div className="flex-1">
                   <div className="flex items-center space-x-2 mb-2">
-                    <span className={`px-2 py-1 rounded-md text-xs font-medium ${getTypeColor(item.type)}`}>
-                      {item.type}
+                    <span className={`px-2 py-1 rounded-md text-xs font-medium ${getTypeColor(item.content_type)}`}>
+                      {item.content_type.replace('_', ' ')}
                     </span>
                     <span className={`px-2 py-1 rounded-md text-xs font-medium ${getStatusColor(item.status)}`}>
                       {item.status}
                     </span>
+                    {item.image_style && (
+                      <span className="px-2 py-1 rounded-md text-xs font-medium bg-gray-500/20 text-gray-300">
+                        {getImageStyleBadge(item.image_style)}
+                      </span>
+                    )}
                   </div>
                   
                   <h3 className="text-white font-semibold text-lg leading-tight mb-2 group-hover:text-gradient transition-all">
@@ -219,27 +241,18 @@ const ContentLibrary = () => {
 
               {/* Preview */}
               <p className="text-text-secondary text-sm mb-4 line-clamp-3">
-                {item.preview}
+                {item.body.substring(0, 100)}...
               </p>
-
-              {/* Hashtags */}
-              <div className="flex flex-wrap gap-1 mb-4">
-                {item.hashtags.slice(0, 3).map((tag) => (
-                  <span key={tag} className="text-accent-purple text-xs">
-                    {tag}
-                  </span>
-                ))}
-              </div>
 
               {/* Footer */}
               <div className="flex items-center justify-between pt-4 border-t border-white/10">
                 <div className="text-text-secondary text-sm">
                   <div className="flex items-center space-x-2">
                     <Calendar className="w-4 h-4" />
-                    <span>{new Date(item.date).toLocaleDateString()}</span>
+                    <span>{new Date(item.created_at).toLocaleDateString()}</span>
                   </div>
                   <div className="mt-1 font-medium">
-                    {item.engagement}
+                    {item.status === 'published' ? 'Published' : item.status === 'scheduled' ? 'Scheduled' : 'Draft'}
                   </div>
                 </div>
                 
@@ -250,7 +263,12 @@ const ContentLibrary = () => {
                   <Button variant="ghost" size="icon" className="text-white/60 hover:text-white h-8 w-8">
                     <Share className="w-4 h-4" />
                   </Button>
-                  <Button variant="ghost" size="icon" className="text-white/60 hover:text-error h-8 w-8">
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="text-white/60 hover:text-error h-8 w-8"
+                    onClick={() => handleDeleteContent(item.id)}
+                  >
                     <Trash2 className="w-4 h-4" />
                   </Button>
                 </div>
@@ -269,12 +287,17 @@ const ContentLibrary = () => {
               >
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center space-x-3 mb-2">
-                    <span className={`px-2 py-1 rounded-md text-xs font-medium ${getTypeColor(item.type)}`}>
-                      {item.type}
+                    <span className={`px-2 py-1 rounded-md text-xs font-medium ${getTypeColor(item.content_type)}`}>
+                      {item.content_type.replace('_', ' ')}
                     </span>
                     <span className={`px-2 py-1 rounded-md text-xs font-medium ${getStatusColor(item.status)}`}>
                       {item.status}
                     </span>
+                    {item.image_style && (
+                      <span className="px-2 py-1 rounded-md text-xs font-medium bg-gray-500/20 text-gray-300">
+                        {getImageStyleBadge(item.image_style)}
+                      </span>
+                    )}
                   </div>
                   
                   <h3 className="text-white font-semibold mb-1 group-hover:text-gradient transition-all">
@@ -282,8 +305,8 @@ const ContentLibrary = () => {
                   </h3>
                   
                   <div className="flex items-center space-x-4 text-sm text-text-secondary">
-                    <span>{new Date(item.date).toLocaleDateString()}</span>
-                    <span>{item.engagement}</span>
+                    <span>{new Date(item.created_at).toLocaleDateString()}</span>
+                    <span>{item.status === 'published' ? 'Published' : item.status === 'scheduled' ? 'Scheduled' : 'Draft'}</span>
                   </div>
                 </div>
                 
@@ -294,7 +317,12 @@ const ContentLibrary = () => {
                   <Button variant="ghost" size="icon" className="text-white/60 hover:text-white h-8 w-8">
                     <Share className="w-4 h-4" />
                   </Button>
-                  <Button variant="ghost" size="icon" className="text-white/60 hover:text-error h-8 w-8">
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="text-white/60 hover:text-error h-8 w-8"
+                    onClick={() => handleDeleteContent(item.id)}
+                  >
                     <Trash2 className="w-4 h-4" />
                   </Button>
                 </div>

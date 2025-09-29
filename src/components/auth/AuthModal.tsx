@@ -3,6 +3,8 @@ import { X, Mail, Lock, User, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -20,16 +22,104 @@ const AuthModal = ({ isOpen, onClose, onSuccess }: AuthModalProps) => {
     password: "",
     confirmPassword: ""
   });
+  const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    try {
+      if (isLogin) {
+        const { error } = await supabase.auth.signInWithPassword({
+          email: formData.email,
+          password: formData.password,
+        });
+        
+        if (error) throw error;
+        
+        toast({
+          title: "Welcome back!",
+          description: "Successfully signed in to your account.",
+        });
+      } else {
+        // Validation
+        if (formData.password !== formData.confirmPassword) {
+          toast({
+            title: "Password mismatch",
+            description: "Passwords do not match. Please try again.",
+            variant: "destructive",
+          });
+          return;
+        }
+        
+        if (formData.password.length < 6) {
+          toast({
+            title: "Password too short",
+            description: "Password must be at least 6 characters long.",
+            variant: "destructive",
+          });
+          return;
+        }
+        
+        const { error } = await supabase.auth.signUp({
+          email: formData.email,
+          password: formData.password,
+          options: {
+            emailRedirectTo: `${window.location.origin}/`,
+            data: {
+              full_name: formData.name,
+            }
+          }
+        });
+        
+        if (error) throw error;
+        
+        toast({
+          title: "Account created!",
+          description: "Check your email to verify your account.",
+        });
+      }
+      
+      onSuccess();
+    } catch (error: any) {
+      toast({
+        title: "Authentication failed",
+        description: error.message || "An error occurred during authentication.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleForgotPassword = async () => {
+    if (!formData.email) {
+      toast({
+        title: "Email required",
+        description: "Please enter your email address first.",
+        variant: "destructive",
+      });
+      return;
+    }
     
-    setIsLoading(false);
-    onSuccess();
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(formData.email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      
+      if (error) throw error;
+      
+      toast({
+        title: "Password reset sent",
+        description: "Check your email for password reset instructions.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Reset failed",
+        description: error.message || "Failed to send password reset email.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleInputChange = (field: string, value: string) => {
@@ -194,6 +284,7 @@ const AuthModal = ({ isOpen, onClose, onSuccess }: AuthModalProps) => {
             <div className="text-center">
               <button
                 type="button"
+                onClick={handleForgotPassword}
                 className="text-text-secondary hover:text-white transition-colors text-sm"
               >
                 Forgot your password?

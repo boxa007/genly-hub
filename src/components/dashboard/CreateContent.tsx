@@ -5,6 +5,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
 
 const contentTypes = [
   {
@@ -41,13 +44,18 @@ const CreateContent = () => {
   const [selectedType, setSelectedType] = useState<string>('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedContent, setGeneratedContent] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+  const [isScheduling, setIsScheduling] = useState(false);
   const [formData, setFormData] = useState({
     topic: '',
     tone: 'professional',
+    imageStyle: 'realistic_photo',
     length: 'medium',
     includeHashtags: true,
     includeCTA: true
   });
+  const { user } = useAuth();
+  const { toast } = useToast();
 
   const handleGenerate = async () => {
     if (!selectedType || !formData.topic) return;
@@ -121,7 +129,83 @@ This is just the beginning. Thank you to our amazing community for trusting us w
 
   const handleCopy = () => {
     navigator.clipboard.writeText(generatedContent);
-    // Could add toast notification here
+    toast({
+      title: "Copied!",
+      description: "Content copied to clipboard.",
+    });
+  };
+
+  const handleSaveToLibrary = async () => {
+    if (!user || !generatedContent) return;
+    
+    setIsSaving(true);
+    try {
+      const { error } = await supabase
+        .from('content')
+        .insert({
+          user_id: user.id,
+          title: formData.topic,
+          body: generatedContent,
+          content_type: selectedType,
+          tone: formData.tone,
+          image_style: formData.imageStyle,
+          status: 'draft'
+        });
+      
+      if (error) throw error;
+      
+      toast({
+        title: "Saved!",
+        description: "Content saved to your library.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Save failed",
+        description: error.message || "Failed to save content.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleSchedulePost = async () => {
+    if (!user || !generatedContent) return;
+    
+    setIsScheduling(true);
+    try {
+      // For now, just save as scheduled - in real app would show date picker
+      const scheduledDate = new Date();
+      scheduledDate.setHours(scheduledDate.getHours() + 24); // Schedule for tomorrow
+      
+      const { error } = await supabase
+        .from('content')
+        .insert({
+          user_id: user.id,
+          title: formData.topic,
+          body: generatedContent,
+          content_type: selectedType,
+          tone: formData.tone,
+          image_style: formData.imageStyle,
+          status: 'scheduled',
+          scheduled_at: scheduledDate.toISOString()
+        });
+      
+      if (error) throw error;
+      
+      toast({
+        title: "Scheduled!",
+        description: "Post scheduled for tomorrow.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Schedule failed",
+        description: error.message || "Failed to schedule post.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsScheduling(false);
+    }
   };
 
   if (!selectedType) {
@@ -229,6 +313,28 @@ This is just the beginning. Thank you to our amazing community for trusting us w
                   <SelectItem value="professional" className="text-white">Professional</SelectItem>
                   <SelectItem value="casual" className="text-white">Casual</SelectItem>
                   <SelectItem value="thought-leader" className="text-white">Thought Leader</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label className="text-white font-medium">Image Style</Label>
+              <Select
+                value={formData.imageStyle}
+                onValueChange={(value) => setFormData(prev => ({ ...prev, imageStyle: value }))}
+              >
+                <SelectTrigger className="input-glass mt-2">
+                  <SelectValue placeholder="Select image style" />
+                </SelectTrigger>
+                <SelectContent className="bg-navy-800 border-white/20">
+                  <SelectItem value="realistic_photo" className="text-white">Realistic Photo</SelectItem>
+                  <SelectItem value="digital_illustration" className="text-white">Digital Illustration</SelectItem>
+                  <SelectItem value="abstract_art" className="text-white">Abstract Art</SelectItem>
+                  <SelectItem value="minimalist" className="text-white">Minimalist</SelectItem>
+                  <SelectItem value="3d_render" className="text-white">3D Render</SelectItem>
+                  <SelectItem value="watercolor" className="text-white">Watercolor</SelectItem>
+                  <SelectItem value="line_art" className="text-white">Line Art</SelectItem>
+                  <SelectItem value="corporate" className="text-white">Corporate/Professional</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -346,14 +452,22 @@ This is just the beginning. Thank you to our amazing community for trusting us w
                   Copy Content
                 </Button>
                 
-                <Button className="btn-glass flex-1">
+                <Button 
+                  onClick={handleSaveToLibrary} 
+                  disabled={isSaving}
+                  className="btn-glass flex-1"
+                >
                   <Save className="w-4 h-4 mr-2" />
-                  Save to Library
+                  {isSaving ? 'Saving...' : 'Save to Library'}
                 </Button>
                 
-                <Button className="btn-hero flex-1">
+                <Button 
+                  onClick={handleSchedulePost}
+                  disabled={isScheduling}
+                  className="btn-hero flex-1"
+                >
                   <Calendar className="w-4 h-4 mr-2" />
-                  Schedule Post
+                  {isScheduling ? 'Scheduling...' : 'Schedule Post'}
                 </Button>
               </div>
             </div>
