@@ -22,7 +22,7 @@ const Header = ({ isAuthenticated = false, onAuthClick }: HeaderProps) => {
               </div>
               <div className="absolute inset-0 bg-gradient-primary rounded-lg blur animate-pulse-slow opacity-50"></div>
             </div>
-            <span className="text-xl font-bold text-white">ContentGen</span>
+            <span className="text-xl font-bold text-white">ProfiLink</span>
           </div>
 
           {/* Desktop Navigation */}
