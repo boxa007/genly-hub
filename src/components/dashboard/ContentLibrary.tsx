@@ -94,12 +94,12 @@ const ContentLibrary = () => {
   const getTypeColor = (type: string) => {
     switch (type) {
       case 'educational':
-        return 'bg-accent-purple/20 text-accent-purple';
+        return 'bg-purple-600/20 text-purple-400';
       case 'engagement':
-        return 'bg-accent-blue/20 text-accent-blue';
+        return 'bg-blue-600/20 text-blue-400';
       case 'lead-magnet':
       case 'lead_magnet':
-        return 'bg-accent-cyan/20 text-accent-cyan';
+        return 'bg-cyan-600/20 text-cyan-400';
       case 'company-update':
       case 'company_update':
         return 'bg-success/20 text-success';
@@ -201,7 +201,7 @@ const ContentLibrary = () => {
       {/* Content Grid/List */}
       {loading ? (
         <div className="text-center py-16">
-          <div className="w-8 h-8 border-2 border-accent-purple border-t-transparent rounded-full animate-spin mx-auto"></div>
+          <div className="w-8 h-8 border-2 border-purple-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
           <p className="text-text-secondary mt-4">Loading your content...</p>
         </div>
       ) : viewMode === 'grid' ? (

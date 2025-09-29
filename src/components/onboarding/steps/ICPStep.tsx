@@ -47,7 +47,7 @@ const ICPStep = ({ formData, updateFormData }: ICPStepProps) => {
       {/* ICP Description */}
       <div className="space-y-4">
         <Label htmlFor="icpDescription" className="text-white font-medium text-lg flex items-center">
-          <Target className="w-5 h-5 mr-2 text-accent-purple" />
+          <Target className="w-5 h-5 mr-2 text-purple-400" />
           Ideal Customer Profile Description
         </Label>
         
@@ -72,7 +72,7 @@ const ICPStep = ({ formData, updateFormData }: ICPStepProps) => {
       {/* Industry Selection */}
       <div className="space-y-4">
         <Label className="text-white font-medium text-lg flex items-center">
-          <Building2 className="w-5 h-5 mr-2 text-accent-blue" />
+          <Building2 className="w-5 h-5 mr-2 text-blue-400" />
           Primary Industry
         </Label>
         
@@ -104,7 +104,7 @@ const ICPStep = ({ formData, updateFormData }: ICPStepProps) => {
       {/* Company Size */}
       <div className="space-y-4">
         <Label className="text-white font-medium text-lg flex items-center">
-          <Users className="w-5 h-5 mr-2 text-accent-cyan" />
+          <Users className="w-5 h-5 mr-2 text-cyan-400" />
           Target Company Size
         </Label>
         
@@ -141,8 +141,8 @@ const ICPStep = ({ formData, updateFormData }: ICPStepProps) => {
         </h4>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="card-glass p-6 rounded-xl border border-accent-purple/20">
-            <h5 className="text-accent-purple font-semibold mb-3">B2B SaaS Example</h5>
+          <div className="card-glass p-6 rounded-xl border border-purple-600/20">
+            <h5 className="text-purple-400 font-semibold mb-3">B2B SaaS Example</h5>
             <p className="text-text-secondary text-sm">
               "Marketing managers at mid-size B2B companies (50-500 employees) who struggle with 
               lead generation and attribution. They're tech-savvy but overwhelmed by too many tools 
@@ -150,8 +150,8 @@ const ICPStep = ({ formData, updateFormData }: ICPStepProps) => {
             </p>
           </div>
 
-          <div className="card-glass p-6 rounded-xl border border-accent-blue/20">
-            <h5 className="text-accent-blue font-semibold mb-3">Consultant Example</h5>
+          <div className="card-glass p-6 rounded-xl border border-blue-600/20">
+            <h5 className="text-blue-400 font-semibold mb-3">Consultant Example</h5>
             <p className="text-text-secondary text-sm">
               "C-level executives at growing companies who need strategic guidance on digital 
               transformation. They value expertise and results over cost, and prefer working 
@@ -177,7 +177,7 @@ const ICPStep = ({ formData, updateFormData }: ICPStepProps) => {
         <div className="flex space-x-2">
           <div className="w-2 h-2 bg-success rounded-full"></div>
           <div className="w-2 h-2 bg-success rounded-full"></div>
-          <div className="w-2 h-2 bg-accent-purple rounded-full"></div>
+          <div className="w-2 h-2 bg-purple-600 rounded-full"></div>
           <div className="w-2 h-2 bg-white/20 rounded-full"></div>
           <div className="w-2 h-2 bg-white/20 rounded-full"></div>
         </div>

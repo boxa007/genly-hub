@@ -196,7 +196,7 @@ const Settings = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-navy-900 flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-accent-purple border-t-transparent rounded-full animate-spin"></div>
+        <div className="w-8 h-8 border-2 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }

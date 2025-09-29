@@ -65,7 +65,7 @@ const LinkedInStep = ({ formData, updateFormData }: LinkedInStepProps) => {
           {/* Validation Icon */}
           <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
             {isValidating ? (
-              <div className="w-6 h-6 border-2 border-accent-purple border-t-transparent rounded-full animate-spin"></div>
+              <div className="w-6 h-6 border-2 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
             ) : isValid === true ? (
               <CheckCircle className="w-6 h-6 text-success" />
             ) : isValid === false ? (
@@ -99,15 +99,15 @@ const LinkedInStep = ({ formData, updateFormData }: LinkedInStepProps) => {
         
         <ol className="text-text-secondary space-y-2 text-sm">
           <li className="flex items-start">
-            <span className="bg-accent-purple w-5 h-5 rounded-full flex items-center justify-center text-white text-xs font-bold mr-3 mt-0.5">1</span>
+            <span className="bg-purple-600 w-5 h-5 rounded-full flex items-center justify-center text-white text-xs font-bold mr-3 mt-0.5">1</span>
             Go to your LinkedIn profile page
           </li>
           <li className="flex items-start">
-            <span className="bg-accent-purple w-5 h-5 rounded-full flex items-center justify-center text-white text-xs font-bold mr-3 mt-0.5">2</span>
+            <span className="bg-purple-600 w-5 h-5 rounded-full flex items-center justify-center text-white text-xs font-bold mr-3 mt-0.5">2</span>
             Click on "Contact info" or look at your browser's address bar
           </li>
           <li className="flex items-start">
-            <span className="bg-accent-purple w-5 h-5 rounded-full flex items-center justify-center text-white text-xs font-bold mr-3 mt-0.5">3</span>
+            <span className="bg-purple-600 w-5 h-5 rounded-full flex items-center justify-center text-white text-xs font-bold mr-3 mt-0.5">3</span>
             Copy the URL that looks like: linkedin.com/in/yourname
           </li>
         </ol>

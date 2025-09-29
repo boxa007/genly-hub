@@ -49,7 +49,7 @@ export default {
           800: 'hsl(218, 19%, 15%)',
           900: 'hsl(var(--primary-bg))',
         },
-        'accent': {
+        'brand': {
           purple: 'hsl(var(--accent-purple))',
           blue: 'hsl(var(--accent-blue))',
           cyan: 'hsl(var(--accent-cyan))',

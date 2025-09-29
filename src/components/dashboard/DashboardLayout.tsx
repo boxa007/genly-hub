@@ -89,17 +89,17 @@ const DashboardLayout = ({ activeTab, onTabChange, children }: DashboardLayoutPr
                   className={`
                     w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-all duration-200
                     ${isActive 
-                      ? 'bg-gradient-to-r from-accent-purple/20 to-accent-blue/20 text-white border border-accent-purple/30' 
+                      ? 'bg-gradient-to-r from-purple-600/20 to-blue-600/20 text-white border border-purple-600/30' 
                       : 'text-text-secondary hover:text-white hover:bg-white/5'
                     }
                   `}
                 >
-                  <Icon className={`w-5 h-5 ${isActive ? 'text-accent-purple' : ''}`} />
+                  <Icon className={`w-5 h-5 ${isActive ? 'text-purple-400' : ''}`} />
                   <span className="font-medium">{item.label}</span>
                   
                   {/* Active Indicator */}
                   {isActive && (
-                    <div className="ml-auto w-2 h-2 bg-accent-purple rounded-full animate-pulse"></div>
+                    <div className="ml-auto w-2 h-2 bg-purple-600 rounded-full animate-pulse"></div>
                   )}
                 </button>
               );

@@ -282,7 +282,7 @@ This is just the beginning. Thank you to our amazing community for trusting us w
         {/* Generation Form */}
         <div className="card-glass rounded-2xl p-8 space-y-6">
           <h2 className="text-xl font-semibold text-white flex items-center">
-            <Sparkles className="w-5 h-5 mr-2 text-accent-purple" />
+            <Sparkles className="w-5 h-5 mr-2 text-purple-400" />
             Content Settings
           </h2>
 
@@ -362,7 +362,7 @@ This is just the beginning. Thank you to our amazing community for trusting us w
                   type="checkbox"
                   checked={formData.includeHashtags}
                   onChange={(e) => setFormData(prev => ({ ...prev, includeHashtags: e.target.checked }))}
-                  className="w-4 h-4 rounded border-white/20 bg-white/10 text-accent-purple focus:ring-accent-purple"
+                  className="w-4 h-4 rounded border-white/20 bg-white/10 text-purple-600 focus:ring-purple-500"
                 />
                 <span className="text-white">Include hashtags</span>
               </label>
@@ -372,7 +372,7 @@ This is just the beginning. Thank you to our amazing community for trusting us w
                   type="checkbox"
                   checked={formData.includeCTA}
                   onChange={(e) => setFormData(prev => ({ ...prev, includeCTA: e.target.checked }))}
-                  className="w-4 h-4 rounded border-white/20 bg-white/10 text-accent-purple focus:ring-accent-purple"
+                  className="w-4 h-4 rounded border-white/20 bg-white/10 text-purple-600 focus:ring-purple-500"
                 />
                 <span className="text-white">Include call-to-action</span>
               </label>

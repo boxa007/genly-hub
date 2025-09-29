@@ -32,10 +32,10 @@ const ReviewStep = ({ formData }: ReviewStepProps) => {
       </div>
 
       {/* LinkedIn Profile Section */}
-      <div className="card-glass p-6 rounded-xl border border-accent-blue/20">
+      <div className="card-glass p-6 rounded-xl border border-blue-600/20">
         <div className="flex items-center justify-between mb-4">
           <h4 className="text-white font-semibold flex items-center">
-            <ExternalLink className="w-5 h-5 mr-2 text-accent-blue" />
+            <ExternalLink className="w-5 h-5 mr-2 text-blue-400" />
             LinkedIn Profile
           </h4>
           {formData.linkedinUrl ? (
@@ -52,10 +52,10 @@ const ReviewStep = ({ formData }: ReviewStepProps) => {
       </div>
 
       {/* Company Information Section */}
-      <div className="card-glass p-6 rounded-xl border border-accent-purple/20">
+      <div className="card-glass p-6 rounded-xl border border-purple-600/20">
         <div className="flex items-center justify-between mb-4">
           <h4 className="text-white font-semibold flex items-center">
-            <Building className="w-5 h-5 mr-2 text-accent-purple" />
+            <Building className="w-5 h-5 mr-2 text-purple-400" />
             Company Information
           </h4>
           {formData.websiteUrl && formData.companyDescription && formData.mainMessage ? (
@@ -84,10 +84,10 @@ const ReviewStep = ({ formData }: ReviewStepProps) => {
       </div>
 
       {/* Target Audience Section */}
-      <div className="card-glass p-6 rounded-xl border border-accent-cyan/20">
+      <div className="card-glass p-6 rounded-xl border border-cyan-600/20">
         <div className="flex items-center justify-between mb-4">
           <h4 className="text-white font-semibold flex items-center">
-            <Target className="w-5 h-5 mr-2 text-accent-cyan" />
+            <Target className="w-5 h-5 mr-2 text-cyan-400" />
             Target Audience (ICP)
           </h4>
           {formData.icpDescription && formData.industry && formData.companySize ? (
@@ -146,7 +146,7 @@ const ReviewStep = ({ formData }: ReviewStepProps) => {
       </div>
 
       {/* Completion Status */}
-      <div className="card-glass p-6 rounded-xl border border-accent-purple/20">
+      <div className="card-glass p-6 rounded-xl border border-purple-600/20">
         <div className="flex items-center justify-between mb-4">
           <h4 className="text-white font-semibold">Ready to Start?</h4>
           {isComplete ? (
@@ -181,8 +181,8 @@ const ReviewStep = ({ formData }: ReviewStepProps) => {
         
         <div className="space-y-4">
           <div className="flex items-start space-x-3">
-            <div className="w-8 h-8 bg-accent-purple/20 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-              <span className="text-accent-purple font-bold text-sm">1</span>
+            <div className="w-8 h-8 bg-purple-600/20 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+              <span className="text-purple-400 font-bold text-sm">1</span>
             </div>
             <div>
               <p className="text-white font-medium">LinkedIn Profile Analysis</p>
@@ -191,8 +191,8 @@ const ReviewStep = ({ formData }: ReviewStepProps) => {
           </div>
           
           <div className="flex items-start space-x-3">
-            <div className="w-8 h-8 bg-accent-blue/20 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-              <span className="text-accent-blue font-bold text-sm">2</span>
+            <div className="w-8 h-8 bg-blue-600/20 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+              <span className="text-blue-400 font-bold text-sm">2</span>
             </div>
             <div>
               <p className="text-white font-medium">Website & Brand Analysis</p>
@@ -201,8 +201,8 @@ const ReviewStep = ({ formData }: ReviewStepProps) => {
           </div>
           
           <div className="flex items-start space-x-3">
-            <div className="w-8 h-8 bg-accent-cyan/20 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-              <span className="text-accent-cyan font-bold text-sm">3</span>
+            <div className="w-8 h-8 bg-cyan-600/20 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+              <span className="text-cyan-400 font-bold text-sm">3</span>
             </div>
             <div>
               <p className="text-white font-medium">Competitor Research</p>
@@ -227,11 +227,11 @@ const ReviewStep = ({ formData }: ReviewStepProps) => {
         <input 
           type="checkbox" 
           id="terms" 
-          className="mt-1 w-4 h-4 rounded border-white/20 bg-white/10 text-accent-purple focus:ring-accent-purple focus:ring-1"
+          className="mt-1 w-4 h-4 rounded border-white/20 bg-white/10 text-purple-600 focus:ring-purple-500 focus:ring-1"
         />
         <label htmlFor="terms" className="text-text-secondary text-sm">
-          I agree to the <span className="text-accent-purple hover:underline cursor-pointer">Terms of Service</span> and 
-          <span className="text-accent-purple hover:underline cursor-pointer ml-1">Privacy Policy</span>. 
+          I agree to the <span className="text-purple-400 hover:underline cursor-pointer">Terms of Service</span> and 
+          <span className="text-purple-400 hover:underline cursor-pointer ml-1">Privacy Policy</span>.
           I understand that ContentGen will analyze publicly available LinkedIn data to create personalized content recommendations.
         </label>
       </div>
@@ -243,7 +243,7 @@ const ReviewStep = ({ formData }: ReviewStepProps) => {
           <div className="w-2 h-2 bg-success rounded-full"></div>
           <div className="w-2 h-2 bg-success rounded-full"></div>
           <div className="w-2 h-2 bg-success rounded-full"></div>
-          <div className="w-2 h-2 bg-accent-purple rounded-full"></div>
+          <div className="w-2 h-2 bg-purple-600 rounded-full"></div>
         </div>
       </div>
     </div>

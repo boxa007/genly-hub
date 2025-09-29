@@ -273,8 +273,8 @@ const AuthModal = ({ isOpen, onClose, onSuccess }: AuthModalProps) => {
               {isLogin ? "Don't have an account?" : "Already have an account?"}
               <button
                 type="button"
-                onClick={() => setIsLogin(!isLogin)}
-                className="ml-2 text-accent-purple hover:text-accent-blue transition-colors font-medium"
+              onClick={() => setIsLogin(!isLogin)}
+              className="ml-2 text-purple-400 hover:text-blue-400 transition-colors font-medium"
               >
                 {isLogin ? "Sign Up" : "Sign In"}
               </button>

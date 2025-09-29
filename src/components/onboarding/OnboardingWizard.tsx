@@ -128,7 +128,7 @@ const OnboardingWizard = ({ onComplete }: OnboardingWizardProps) => {
                   step.id < currentStep 
                     ? 'bg-success border-success text-white' 
                     : step.id === currentStep
-                    ? 'border-accent-purple bg-navy-800 text-accent-purple'
+                    ? 'border-purple-600 bg-navy-800 text-purple-400'
                     : 'border-white/20 bg-navy-800 text-white/40'
                 }`}>
                   {step.id < currentStep ? (

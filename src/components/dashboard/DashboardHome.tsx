@@ -12,21 +12,21 @@ const DashboardHome = () => {
       value: "0",
       change: "+0%",
       icon: FileText,
-      color: "text-accent-purple"
+      color: "text-purple-400"
     },
     {
       label: "Total Engagement",
       value: "0",
       change: "+0%",
       icon: TrendingUp,
-      color: "text-accent-blue"
+      color: "text-blue-400"
     },
     {
       label: "Posts Scheduled",
       value: "0",
       change: "+0",
       icon: Calendar,
-      color: "text-accent-cyan"
+      color: "text-cyan-400"
     },
     {
       label: "Followers Gained",
@@ -67,21 +67,21 @@ const DashboardHome = () => {
           value: totalPosts.toString(),
           change: "+12%",
           icon: FileText,
-          color: "text-accent-purple"
+          color: "text-purple-400"
         },
         {
           label: "Total Engagement",
           value: "0", // Would calculate from actual engagement data
           change: "+0%",
           icon: TrendingUp,
-          color: "text-accent-blue"
+          color: "text-blue-400"
         },
         {
           label: "Posts Scheduled",
           value: scheduledPosts.toString(),
           change: `+${scheduledPosts}`,
           icon: Calendar,
-          color: "text-accent-cyan"
+          color: "text-cyan-400"
         },
         {
           label: "Published Posts",
@@ -168,7 +168,7 @@ const DashboardHome = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="card-glass card-hover p-6 rounded-2xl group cursor-pointer">
           <div className="flex items-center justify-between mb-4">
-            <div className="w-12 h-12 bg-gradient-to-r from-accent-purple to-accent-blue rounded-xl flex items-center justify-center">
+            <div className="w-12 h-12 bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl flex items-center justify-center">
               <Zap className="w-6 h-6 text-white" />
             </div>
             <ArrowRight className="w-5 h-5 text-white/40 group-hover:text-white group-hover:translate-x-1 transition-all" />
@@ -180,7 +180,7 @@ const DashboardHome = () => {
 
         <div className="card-glass card-hover p-6 rounded-2xl group cursor-pointer">
           <div className="flex items-center justify-between mb-4">
-            <div className="w-12 h-12 bg-gradient-to-r from-accent-blue to-accent-cyan rounded-xl flex items-center justify-center">
+            <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-xl flex items-center justify-center">
               <Calendar className="w-6 h-6 text-white" />
             </div>
             <ArrowRight className="w-5 h-5 text-white/40 group-hover:text-white group-hover:translate-x-1 transition-all" />
@@ -192,7 +192,7 @@ const DashboardHome = () => {
 
         <div className="card-glass card-hover p-6 rounded-2xl group cursor-pointer">
           <div className="flex items-center justify-between mb-4">
-            <div className="w-12 h-12 bg-gradient-to-r from-accent-cyan to-success rounded-xl flex items-center justify-center">
+            <div className="w-12 h-12 bg-gradient-to-r from-cyan-600 to-green-600 rounded-xl flex items-center justify-center">
               <TrendingUp className="w-6 h-6 text-white" />
             </div>
             <ArrowRight className="w-5 h-5 text-white/40 group-hover:text-white group-hover:translate-x-1 transition-all" />
@@ -207,7 +207,7 @@ const DashboardHome = () => {
       <div className="card-glass rounded-2xl p-8">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-bold text-white">Recent Content</h2>
-          <Button variant="ghost" className="text-accent-purple hover:text-accent-blue">
+          <Button variant="ghost" className="text-purple-400 hover:text-blue-400">
             View All
             <ArrowRight className="w-4 h-4 ml-2" />
           </Button>
@@ -216,7 +216,7 @@ const DashboardHome = () => {
         <div className="space-y-4">
           {loading ? (
             <div className="text-center py-8">
-              <div className="w-8 h-8 border-2 border-accent-purple border-t-transparent rounded-full animate-spin mx-auto"></div>
+              <div className="w-8 h-8 border-2 border-purple-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
               <p className="text-text-secondary mt-2">Loading content...</p>
             </div>
           ) : recentContent.length > 0 ? (
@@ -230,7 +230,7 @@ const DashboardHome = () => {
                     {content.title}
                   </h3>
                   <div className="flex items-center space-x-4 text-sm text-text-secondary">
-                    <span className="px-2 py-1 bg-accent-purple/20 text-accent-purple rounded-md">
+                    <span className="px-2 py-1 bg-purple-600/20 text-purple-400 rounded-md">
                       {content.content_type.replace('_', ' ')}
                     </span>
                     <span>{formatDate(content.created_at)}</span>
@@ -267,7 +267,7 @@ const DashboardHome = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="card-glass rounded-2xl p-6">
           <h3 className="text-xl font-semibold text-white mb-4 flex items-center">
-            <TrendingUp className="w-5 h-5 mr-2 text-accent-purple" />
+            <TrendingUp className="w-5 h-5 mr-2 text-purple-400" />
             Performance Insights
           </h3>
           
@@ -291,7 +291,7 @@ const DashboardHome = () => {
 
         <div className="card-glass rounded-2xl p-6">
           <h3 className="text-xl font-semibold text-white mb-4 flex items-center">
-            <Zap className="w-5 h-5 mr-2 text-accent-blue" />
+            <Zap className="w-5 h-5 mr-2 text-blue-400" />
             Content Ideas
           </h3>
           

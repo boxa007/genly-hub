@@ -51,9 +51,9 @@ const CompetitorsStep = ({ formData, updateFormData }: CompetitorsStepProps) => 
       </div>
 
       {/* Instructions */}
-      <div className="card-glass p-6 rounded-xl border border-accent-blue/20">
+      <div className="card-glass p-6 rounded-xl border border-blue-600/20">
         <h4 className="text-white font-semibold mb-3 flex items-center">
-          <TrendingUp className="w-5 h-5 mr-2 text-accent-blue" />
+          <TrendingUp className="w-5 h-5 mr-2 text-blue-400" />
           What We'll Analyze
         </h4>
         <ul className="text-text-secondary text-sm space-y-2">
@@ -68,7 +68,7 @@ const CompetitorsStep = ({ formData, updateFormData }: CompetitorsStepProps) => 
       {/* Competitor Inputs */}
       <div className="space-y-6">
         <Label className="text-white font-medium text-lg flex items-center">
-          <ExternalLink className="w-5 h-5 mr-2 text-accent-purple" />
+          <ExternalLink className="w-5 h-5 mr-2 text-purple-400" />
           Competitor LinkedIn URLs
         </Label>
 
@@ -119,16 +119,16 @@ const CompetitorsStep = ({ formData, updateFormData }: CompetitorsStepProps) => 
 
       {/* Tips Section */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="card-glass p-6 rounded-xl border border-accent-purple/20">
-          <h5 className="text-accent-purple font-semibold mb-3">Direct Competitors</h5>
+        <div className="card-glass p-6 rounded-xl border border-purple-600/20">
+          <h5 className="text-purple-400 font-semibold mb-3">Direct Competitors</h5>
           <p className="text-text-secondary text-sm">
             Companies or individuals offering similar products/services to the same target audience. 
             These are your primary competition for mindshare.
           </p>
         </div>
 
-        <div className="card-glass p-6 rounded-xl border border-accent-cyan/20">
-          <h5 className="text-accent-cyan font-semibold mb-3">Thought Leaders</h5>
+        <div className="card-glass p-6 rounded-xl border border-cyan-600/20">
+          <h5 className="text-cyan-400 font-semibold mb-3">Thought Leaders</h5>
           <p className="text-text-secondary text-sm">
             Industry influencers and experts who share content in your space. 
             They may not compete directly but influence your audience.
@@ -161,7 +161,7 @@ const CompetitorsStep = ({ formData, updateFormData }: CompetitorsStepProps) => 
           <div className="w-2 h-2 bg-success rounded-full"></div>
           <div className="w-2 h-2 bg-success rounded-full"></div>
           <div className="w-2 h-2 bg-success rounded-full"></div>
-          <div className="w-2 h-2 bg-accent-purple rounded-full"></div>
+          <div className="w-2 h-2 bg-purple-600 rounded-full"></div>
           <div className="w-2 h-2 bg-white/20 rounded-full"></div>
         </div>
       </div>
