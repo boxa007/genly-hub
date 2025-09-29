@@ -20,58 +20,101 @@ const App = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
+
+    // Set loading timeout as fallback
+    const setLoadingTimeout = () => {
+      timeoutId = setTimeout(() => {
+        console.warn('Loading timeout reached, falling back to landing');
+        setLoading(false);
+        setAppState('landing');
+      }, 10000);
+    };
+
+    const clearLoadingTimeout = () => {
+      if (timeoutId) clearTimeout(timeoutId);
+    };
+
+    const checkUserProfile = async (userId: string) => {
+      try {
+        const { data: profile, error } = await supabase
+          .from('user_profiles')
+          .select('onboarding_completed')
+          .eq('user_id', userId)
+          .maybeSingle();
+        
+        if (error) {
+          console.error('Profile fetch error:', error);
+          setAppState('landing');
+        } else if (profile?.onboarding_completed) {
+          setAppState('dashboard');
+        } else {
+          setAppState('onboarding');
+        }
+      } catch (err) {
+        console.error('Profile check failed:', err);
+        setAppState('landing');
+      } finally {
+        clearLoadingTimeout();
+        setLoading(false);
+      }
+    };
+
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        clearLoadingTimeout();
         setSession(session);
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          // Check if user has completed onboarding
-          const { data: profile } = await supabase
-            .from('user_profiles')
-            .select('onboarding_completed')
-            .eq('user_id', session.user.id)
-            .single();
-          
-          if (profile?.onboarding_completed) {
-            setAppState('dashboard');
-          } else {
-            setAppState('onboarding');
-          }
+          setLoadingTimeout();
+          await checkUserProfile(session.user.id);
         } else {
           setAppState('landing');
+          setLoading(false);
         }
-        setLoading(false);
       }
     );
 
     // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      
-      if (session?.user) {
-        // Check if user has completed onboarding
-        supabase
-          .from('user_profiles')
-          .select('onboarding_completed')
-          .eq('user_id', session.user.id)
-          .single()
-          .then(({ data: profile }) => {
-            if (profile?.onboarding_completed) {
-              setAppState('dashboard');
-            } else {
-              setAppState('onboarding');
-            }
-            setLoading(false);
-          });
-      } else {
+    const initializeAuth = async () => {
+      try {
+        setLoadingTimeout();
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('Session fetch error:', error);
+          setAppState('landing');
+          clearLoadingTimeout();
+          setLoading(false);
+          return;
+        }
+
+        setSession(session);
+        setUser(session?.user ?? null);
+        
+        if (session?.user) {
+          await checkUserProfile(session.user.id);
+        } else {
+          setAppState('landing');
+          clearLoadingTimeout();
+          setLoading(false);
+        }
+      } catch (err) {
+        console.error('Auth initialization failed:', err);
+        setAppState('landing');
+        clearLoadingTimeout();
         setLoading(false);
       }
-    });
+    };
 
-    return () => subscription.unsubscribe();
+    initializeAuth();
+
+    return () => {
+      subscription.unsubscribe();
+      clearLoadingTimeout();
+    };
   }, []);
 
   const handleAuthSuccess = () => {
