@@ -1,5 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import { 
   LayoutDashboard, 
   PlusCircle, 
@@ -35,7 +37,27 @@ interface DashboardLayoutProps {
 
 const DashboardLayout = ({ activeTab, onTabChange, children }: DashboardLayoutProps) => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [profile, setProfile] = useState<{ full_name: string; subscription_tier: string } | null>(null);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      if (!user) return;
+      
+      const { data } = await supabase
+        .from('user_profiles')
+        .select('full_name, subscription_tier')
+        .eq('user_id', user.id)
+        .single();
+      
+      if (data) {
+        setProfile(data);
+      }
+    };
+
+    fetchProfile();
+  }, [user]);
 
   return (
     <div className="min-h-screen bg-navy-900 flex">
@@ -125,11 +147,28 @@ const DashboardLayout = ({ activeTab, onTabChange, children }: DashboardLayoutPr
           <div className="p-4 border-t border-white/10">
             <div className="flex items-center space-x-3 p-3 rounded-lg bg-white/5">
               <div className="w-10 h-10 bg-gradient-primary rounded-full flex items-center justify-center">
-                <span className="text-white font-semibold text-sm">JS</span>
+                <span className="text-white font-semibold text-sm">
+                  {profile?.full_name
+                    ? profile.full_name
+                        .split(' ')
+                        .map(n => n[0])
+                        .join('')
+                        .toUpperCase()
+                        .slice(0, 2)
+                    : 'U'}
+                </span>
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-white font-medium text-sm truncate">John Smith</p>
-                <p className="text-text-secondary text-xs truncate">Professional Plan</p>
+                <p className="text-white font-medium text-sm truncate">
+                  {profile?.full_name || 'User'}
+                </p>
+                <p className="text-text-secondary text-xs truncate">
+                  {profile?.subscription_tier === 'trial' && 'Trial Plan'}
+                  {profile?.subscription_tier === 'starter' && 'Starter Plan'}
+                  {profile?.subscription_tier === 'professional' && 'Professional Plan'}
+                  {profile?.subscription_tier === 'enterprise' && 'Enterprise Plan'}
+                  {!profile?.subscription_tier && 'Free Plan'}
+                </p>
               </div>
             </div>
           </div>

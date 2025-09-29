@@ -364,6 +364,17 @@ const ContentLibrary = () => {
           </Button>
         </div>
       )}
+
+      {/* Edit Post Modal */}
+      <EditPostModal
+        open={editModalOpen}
+        onOpenChange={(open) => {
+          setEditModalOpen(open);
+          if (!open) setEditingContent(null);
+        }}
+        content={editingContent}
+        onSuccess={fetchContent}
+      />
     </div>
   );
 };

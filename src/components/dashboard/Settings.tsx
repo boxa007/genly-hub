@@ -1,54 +1,99 @@
 import { useState, useEffect } from "react";
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { supabase } from "@/integrations/supabase/client";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
-import { User, Building, Users, FileText, Plus, Trash2, Download, Upload } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { Upload, Download, Trash2, Check, Zap } from "lucide-react";
 
 interface UserProfile {
   full_name: string;
   email: string;
+  subscription_tier: string;
 }
 
 interface Company {
   id: string;
-  linkedin_url: string;
-  website_url: string;
-  company_description: string;
-  main_message: string;
-  icp_description: string;
-  industry: string;
-  company_size: string;
+  linkedin_url: string | null;
+  website_url: string | null;
+  company_description: string | null;
+  main_message: string | null;
+  icp_description: string | null;
+  company_size: string | null;
+  industry: string | null;
 }
 
 interface Competitor {
   id: string;
   name: string;
-  website_url: string;
-  linkedin_url: string;
+  website_url: string | null;
+  linkedin_url: string | null;
 }
 
 interface Document {
+  id: string;
   name: string;
+  path: string;
   created_at: string;
-  metadata: any;
 }
+
+const pricingPlans = [
+  {
+    name: "Starter",
+    price: 29,
+    features: [
+      "20 AI-generated posts per month",
+      "5 lead magnets",
+      "Basic analytics",
+      "Content library",
+      "Email support"
+    ],
+    gradient: "from-gray-500 to-gray-600"
+  },
+  {
+    name: "Professional",
+    price: 79,
+    features: [
+      "100 AI-generated posts per month",
+      "20 lead magnets",
+      "Advanced analytics",
+      "Content scheduling",
+      "Buffer integration",
+      "Priority support",
+      "Custom templates"
+    ],
+    popular: true,
+    gradient: "from-purple-500 to-blue-500"
+  },
+  {
+    name: "Enterprise",
+    price: 199,
+    features: [
+      "Unlimited AI-generated posts",
+      "Unlimited lead magnets",
+      "Advanced team collaboration",
+      "White-label solution",
+      "API access",
+      "Custom integrations",
+      "Dedicated account manager",
+      "24/7 priority support"
+    ],
+    gradient: "from-blue-500 to-cyan-500"
+  }
+];
 
 const Settings = () => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [uploading, setUploading] = useState(false);
   
-  const [profile, setProfile] = useState<UserProfile>({ full_name: '', email: '' });
+  const [profile, setProfile] = useState<UserProfile>({ full_name: '', email: '', subscription_tier: 'trial' });
   const [company, setCompany] = useState<Company | null>(null);
   const [competitors, setCompetitors] = useState<Competitor[]>([]);
   const [documents, setDocuments] = useState<Document[]>([]);
+  const [loading, setLoading] = useState(true);
   const [newCompetitor, setNewCompetitor] = useState({ name: '', website_url: '', linkedin_url: '' });
 
   useEffect(() => {
@@ -58,28 +103,25 @@ const Settings = () => {
   }, [user]);
 
   const fetchAllSettings = async () => {
-    if (!user) return;
-    
-    setLoading(true);
     try {
-      // Fetch profile
+      // Fetch user profile
       const { data: profileData } = await supabase
         .from('user_profiles')
-        .select('*')
-        .eq('user_id', user.id)
+        .select('full_name, email, subscription_tier')
+        .eq('user_id', user?.id)
         .single();
-      
+
       if (profileData) {
-        setProfile({ full_name: profileData.full_name, email: profileData.email });
+        setProfile(profileData);
       }
 
       // Fetch company
       const { data: companyData } = await supabase
         .from('companies')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', user?.id)
         .single();
-      
+
       setCompany(companyData);
 
       // Fetch competitors
@@ -88,16 +130,25 @@ const Settings = () => {
           .from('competitors')
           .select('*')
           .eq('company_id', companyData.id);
-        
+
         setCompetitors(competitorsData || []);
       }
 
       // Fetch documents
-      const { data: documentsData } = await supabase.storage
+      const { data: filesData } = await supabase
+        .storage
         .from('company_documents')
-        .list(user.id);
-      
-      setDocuments(documentsData || []);
+        .list(user?.id);
+
+      if (filesData) {
+        const docsWithDetails = filesData.map(file => ({
+          id: file.id,
+          name: file.name,
+          path: `${user?.id}/${file.name}`,
+          created_at: file.created_at
+        }));
+        setDocuments(docsWithDetails);
+      }
     } catch (error) {
       console.error('Error fetching settings:', error);
     } finally {
@@ -106,48 +157,119 @@ const Settings = () => {
   };
 
   const handleSaveProfile = async () => {
-    if (!user) return;
-    
-    setSaving(true);
     try {
       const { error } = await supabase
         .from('user_profiles')
-        .update({ full_name: profile.full_name })
-        .eq('user_id', user.id);
-      
+        .update({
+          full_name: profile.full_name,
+          email: profile.email
+        })
+        .eq('user_id', user?.id);
+
       if (error) throw error;
-      
-      toast({ title: "Saved!", description: "Profile updated successfully." });
+
+      toast({
+        title: "Success",
+        description: "Profile updated successfully.",
+      });
     } catch (error: any) {
-      toast({ title: "Save failed", description: error.message, variant: "destructive" });
-    } finally {
-      setSaving(false);
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleSaveICP = async () => {
+    try {
+      if (!company) {
+        // Create company if doesn't exist
+        const { error } = await supabase
+          .from('companies')
+          .insert({
+            user_id: user?.id,
+            icp_description: '',
+            company_size: '',
+            industry: ''
+          });
+
+        if (error) throw error;
+        await fetchAllSettings();
+      } else {
+        // Update existing company
+        const { error } = await supabase
+          .from('companies')
+          .update({
+            icp_description: company.icp_description,
+            company_size: company.company_size,
+            industry: company.industry
+          })
+          .eq('id', company.id);
+
+        if (error) throw error;
+      }
+
+      toast({
+        title: "Success",
+        description: "ICP information updated successfully.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
     }
   };
 
   const handleSaveCompany = async () => {
-    if (!user || !company) return;
-    
-    setSaving(true);
     try {
-      const { error } = await supabase
-        .from('companies')
-        .update(company)
-        .eq('user_id', user.id);
-      
-      if (error) throw error;
-      
-      toast({ title: "Saved!", description: "Company information updated successfully." });
+      if (!company) {
+        // Create company if doesn't exist
+        const { error } = await supabase
+          .from('companies')
+          .insert({
+            user_id: user?.id,
+            linkedin_url: '',
+            website_url: '',
+            company_description: '',
+            main_message: ''
+          });
+
+        if (error) throw error;
+        await fetchAllSettings();
+      } else {
+        // Update existing company
+        const { error } = await supabase
+          .from('companies')
+          .update({
+            linkedin_url: company.linkedin_url,
+            website_url: company.website_url,
+            company_description: company.company_description,
+            main_message: company.main_message
+          })
+          .eq('id', company.id);
+
+        if (error) throw error;
+      }
+
+      toast({
+        title: "Success",
+        description: "Company information updated successfully.",
+      });
     } catch (error: any) {
-      toast({ title: "Save failed", description: error.message, variant: "destructive" });
-    } finally {
-      setSaving(false);
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
     }
   };
 
   const handleAddCompetitor = async () => {
-    if (!user || !company || !newCompetitor.name) return;
-    
+    if (!newCompetitor.name || !company) return;
+
     try {
       const { error } = await supabase
         .from('competitors')
@@ -157,292 +279,435 @@ const Settings = () => {
           website_url: newCompetitor.website_url,
           linkedin_url: newCompetitor.linkedin_url
         });
-      
+
       if (error) throw error;
-      
-      toast({ title: "Added!", description: "Competitor added successfully." });
+
+      toast({
+        title: "Success",
+        description: "Competitor added successfully.",
+      });
+
       setNewCompetitor({ name: '', website_url: '', linkedin_url: '' });
       fetchAllSettings();
     } catch (error: any) {
-      toast({ title: "Add failed", description: error.message, variant: "destructive" });
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
     }
   };
 
-  const handleDeleteCompetitor = async (id: string) => {
+  const handleDeleteCompetitor = async (competitorId: string) => {
     try {
       const { error } = await supabase
         .from('competitors')
         .delete()
-        .eq('id', id);
-      
+        .eq('id', competitorId);
+
       if (error) throw error;
-      
-      toast({ title: "Deleted!", description: "Competitor removed successfully." });
+
+      toast({
+        title: "Success",
+        description: "Competitor deleted successfully.",
+      });
+
       fetchAllSettings();
     } catch (error: any) {
-      toast({ title: "Delete failed", description: error.message, variant: "destructive" });
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
     }
   };
 
   const handleUploadDocument = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (!user || !event.target.files || event.target.files.length === 0) return;
-    
-    const file = event.target.files[0];
-    setUploading(true);
-    
+    const file = event.target.files?.[0];
+    if (!file) return;
+
     try {
+      const filePath = `${user?.id}/${file.name}`;
+      
       const { error } = await supabase.storage
         .from('company_documents')
-        .upload(`${user.id}/${file.name}`, file);
-      
+        .upload(filePath, file);
+
       if (error) throw error;
-      
-      toast({ title: "Uploaded!", description: "Document uploaded successfully." });
+
+      toast({
+        title: "Success",
+        description: "Document uploaded successfully.",
+      });
+
       fetchAllSettings();
     } catch (error: any) {
-      toast({ title: "Upload failed", description: error.message, variant: "destructive" });
-    } finally {
-      setUploading(false);
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
     }
   };
 
-  const handleDownloadDocument = async (fileName: string) => {
-    if (!user) return;
-    
+  const handleDownloadDocument = async (path: string, name: string) => {
     try {
       const { data, error } = await supabase.storage
         .from('company_documents')
-        .download(`${user.id}/${fileName}`);
-      
+        .download(path);
+
       if (error) throw error;
-      
+
       const url = URL.createObjectURL(data);
       const a = document.createElement('a');
       a.href = url;
-      a.download = fileName;
+      a.download = name;
+      document.body.appendChild(a);
       a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
     } catch (error: any) {
-      toast({ title: "Download failed", description: error.message, variant: "destructive" });
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
     }
   };
 
-  const handleDeleteDocument = async (fileName: string) => {
-    if (!user) return;
-    
+  const handleDeleteDocument = async (path: string) => {
     try {
       const { error } = await supabase.storage
         .from('company_documents')
-        .remove([`${user.id}/${fileName}`]);
-      
+        .remove([path]);
+
       if (error) throw error;
-      
-      toast({ title: "Deleted!", description: "Document deleted successfully." });
+
+      toast({
+        title: "Success",
+        description: "Document deleted successfully.",
+      });
+
       fetchAllSettings();
     } catch (error: any) {
-      toast({ title: "Delete failed", description: error.message, variant: "destructive" });
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
     }
   };
 
   if (loading) {
     return (
-      <div className="card-glass rounded-2xl p-8 text-center">
-        <div className="w-8 h-8 border-2 border-white/20 border-t-white rounded-full animate-spin mx-auto"></div>
+      <div className="flex items-center justify-center h-64">
+        <div className="w-8 h-8 border-2 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      {/* Profile */}
-      <Card className="card-glass p-8">
-        <h2 className="text-2xl font-bold text-white mb-6 flex items-center">
-          <User className="w-6 h-6 mr-2 text-purple-400" />
-          Profile Information
-        </h2>
-        <div className="space-y-4">
+    <div className="space-y-8 max-w-7xl">
+      {/* Header */}
+      <div>
+        <h1 className="text-3xl font-bold text-white mb-2">Settings</h1>
+        <p className="text-text-secondary text-lg">Manage your account and preferences</p>
+      </div>
+
+      {/* User Information */}
+      <div className="card-glass rounded-2xl p-8">
+        <h2 className="text-2xl font-bold text-white mb-6">User Information</h2>
+        <div className="space-y-6">
           <div>
-            <Label className="text-white">Full Name</Label>
+            <Label htmlFor="fullName" className="text-white mb-2">Full Name</Label>
             <Input
-              className="input-glass mt-2"
+              id="fullName"
               value={profile.full_name}
               onChange={(e) => setProfile({ ...profile, full_name: e.target.value })}
+              className="input-glass"
             />
           </div>
           <div>
-            <Label className="text-white">Email</Label>
+            <Label htmlFor="email" className="text-white mb-2">Email</Label>
             <Input
-              className="input-glass mt-2"
+              id="email"
+              type="email"
               value={profile.email}
-              disabled
+              onChange={(e) => setProfile({ ...profile, email: e.target.value })}
+              className="input-glass"
             />
           </div>
-          <Button onClick={handleSaveProfile} disabled={saving} className="btn-hero">
-            {saving ? 'Saving...' : 'Save Profile'}
+          <Button onClick={handleSaveProfile} className="btn-hero">
+            Save Profile
           </Button>
         </div>
-      </Card>
+      </div>
 
-      {/* Company */}
-      {company && (
-        <Card className="card-glass p-8">
-          <h2 className="text-2xl font-bold text-white mb-6 flex items-center">
-            <Building className="w-6 h-6 mr-2 text-purple-400" />
-            Company Information
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label className="text-white">LinkedIn URL</Label>
-              <Input
-                className="input-glass mt-2"
-                value={company.linkedin_url || ''}
-                onChange={(e) => setCompany({ ...company, linkedin_url: e.target.value })}
-              />
-            </div>
-            <div>
-              <Label className="text-white">Website URL</Label>
-              <Input
-                className="input-glass mt-2"
-                value={company.website_url || ''}
-                onChange={(e) => setCompany({ ...company, website_url: e.target.value })}
-              />
-            </div>
-            <div>
-              <Label className="text-white">Industry</Label>
-              <Input
-                className="input-glass mt-2"
-                value={company.industry || ''}
-                onChange={(e) => setCompany({ ...company, industry: e.target.value })}
-              />
-            </div>
-            <div>
-              <Label className="text-white">Company Size</Label>
-              <Input
-                className="input-glass mt-2"
-                value={company.company_size || ''}
-                onChange={(e) => setCompany({ ...company, company_size: e.target.value })}
-              />
-            </div>
-            <div className="md:col-span-2">
-              <Label className="text-white">Company Description</Label>
-              <Textarea
-                className="input-glass mt-2"
-                value={company.company_description || ''}
-                onChange={(e) => setCompany({ ...company, company_description: e.target.value })}
-              />
-            </div>
-            <div className="md:col-span-2">
-              <Label className="text-white">Main Message</Label>
-              <Textarea
-                className="input-glass mt-2"
-                value={company.main_message || ''}
-                onChange={(e) => setCompany({ ...company, main_message: e.target.value })}
-              />
-            </div>
-            <div className="md:col-span-2">
-              <Label className="text-white">ICP Description</Label>
-              <Textarea
-                className="input-glass mt-2"
-                value={company.icp_description || ''}
-                onChange={(e) => setCompany({ ...company, icp_description: e.target.value })}
-              />
-            </div>
+      {/* ICP Information */}
+      <div className="card-glass rounded-2xl p-8">
+        <h2 className="text-2xl font-bold text-white mb-6">ICP (Ideal Customer Profile)</h2>
+        <div className="space-y-6">
+          <div>
+            <Label htmlFor="icpDescription" className="text-white mb-2">ICP Description</Label>
+            <Textarea
+              id="icpDescription"
+              value={company?.icp_description || ''}
+              onChange={(e) => setCompany({ ...company!, icp_description: e.target.value })}
+              className="input-glass min-h-[100px]"
+              placeholder="Describe your ideal customer profile..."
+            />
           </div>
-          <Button onClick={handleSaveCompany} disabled={saving} className="btn-hero mt-4">
-            {saving ? 'Saving...' : 'Save Company Info'}
+          <div>
+            <Label htmlFor="companySize" className="text-white mb-2">Company Size</Label>
+            <Select
+              value={company?.company_size || ''}
+              onValueChange={(value) => setCompany({ ...company!, company_size: value })}
+            >
+              <SelectTrigger className="input-glass">
+                <SelectValue placeholder="Select company size" />
+              </SelectTrigger>
+              <SelectContent className="bg-navy-800 border-white/20">
+                <SelectItem value="1-10" className="text-white">1-10 employees</SelectItem>
+                <SelectItem value="11-50" className="text-white">11-50 employees</SelectItem>
+                <SelectItem value="51-200" className="text-white">51-200 employees</SelectItem>
+                <SelectItem value="201-500" className="text-white">201-500 employees</SelectItem>
+                <SelectItem value="500+" className="text-white">500+ employees</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label htmlFor="industry" className="text-white mb-2">Industry</Label>
+            <Input
+              id="industry"
+              value={company?.industry || ''}
+              onChange={(e) => setCompany({ ...company!, industry: e.target.value })}
+              className="input-glass"
+              placeholder="e.g., Technology, Healthcare, Finance..."
+            />
+          </div>
+          <Button onClick={handleSaveICP} className="btn-hero">
+            Save ICP Info
           </Button>
-        </Card>
-      )}
+        </div>
+      </div>
+
+      {/* Company Information */}
+      <div className="card-glass rounded-2xl p-8">
+        <h2 className="text-2xl font-bold text-white mb-6">Company Information</h2>
+        <div className="space-y-6">
+          <div>
+            <Label htmlFor="linkedinUrl" className="text-white mb-2">LinkedIn URL</Label>
+            <Input
+              id="linkedinUrl"
+              value={company?.linkedin_url || ''}
+              onChange={(e) => setCompany({ ...company!, linkedin_url: e.target.value })}
+              className="input-glass"
+              placeholder="https://linkedin.com/company/..."
+            />
+          </div>
+          <div>
+            <Label htmlFor="websiteUrl" className="text-white mb-2">Website URL</Label>
+            <Input
+              id="websiteUrl"
+              value={company?.website_url || ''}
+              onChange={(e) => setCompany({ ...company!, website_url: e.target.value })}
+              className="input-glass"
+              placeholder="https://yourcompany.com"
+            />
+          </div>
+          <div>
+            <Label htmlFor="companyDescription" className="text-white mb-2">Company Description</Label>
+            <Textarea
+              id="companyDescription"
+              value={company?.company_description || ''}
+              onChange={(e) => setCompany({ ...company!, company_description: e.target.value })}
+              className="input-glass min-h-[100px]"
+              placeholder="Describe what your company does..."
+            />
+          </div>
+          <div>
+            <Label htmlFor="mainMessage" className="text-white mb-2">Main Message</Label>
+            <Textarea
+              id="mainMessage"
+              value={company?.main_message || ''}
+              onChange={(e) => setCompany({ ...company!, main_message: e.target.value })}
+              className="input-glass min-h-[100px]"
+              placeholder="What's your key message or value proposition?"
+            />
+          </div>
+          <Button onClick={handleSaveCompany} className="btn-hero">
+            Save Company Info
+          </Button>
+        </div>
+      </div>
+
+      {/* Billing */}
+      <div className="card-glass rounded-2xl p-8">
+        <h2 className="text-2xl font-bold text-white mb-6">Billing & Plans</h2>
+        
+        <div className="mb-8 p-4 bg-white/5 rounded-lg border border-white/10">
+          <p className="text-text-secondary">Current Plan:</p>
+          <p className="text-2xl font-bold text-white mt-1">
+            {profile.subscription_tier === 'trial' && 'Trial (14 days free)'}
+            {profile.subscription_tier === 'starter' && 'Starter Plan'}
+            {profile.subscription_tier === 'professional' && 'Professional Plan'}
+            {profile.subscription_tier === 'enterprise' && 'Enterprise Plan'}
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+          {pricingPlans.map((plan) => (
+            <div
+              key={plan.name}
+              className={`relative card-glass rounded-xl p-6 ${
+                plan.popular ? 'ring-2 ring-purple-500/50' : ''
+              }`}
+            >
+              {plan.popular && (
+                <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-gradient-primary text-white px-4 py-1 rounded-full text-sm font-semibold">
+                  Most Popular
+                </div>
+              )}
+
+              <div className="text-center mb-6">
+                <div className={`w-12 h-12 bg-gradient-to-r ${plan.gradient} rounded-xl flex items-center justify-center mx-auto mb-4`}>
+                  <Zap className="w-6 h-6 text-white" />
+                </div>
+                <h3 className="text-xl font-bold text-white mb-2">{plan.name}</h3>
+                <div className="flex items-baseline justify-center">
+                  <span className="text-3xl font-bold text-white">${plan.price}</span>
+                  <span className="text-text-secondary ml-1">/month</span>
+                </div>
+              </div>
+
+              <ul className="space-y-3 mb-6">
+                {plan.features.map((feature, idx) => (
+                  <li key={idx} className="flex items-start text-sm">
+                    <Check className="w-4 h-4 text-success flex-shrink-0 mt-0.5 mr-2" />
+                    <span className="text-text-secondary">{feature}</span>
+                  </li>
+                ))}
+              </ul>
+
+              <Button
+                className={plan.popular ? 'btn-hero w-full' : 'btn-glass w-full'}
+                disabled={profile.subscription_tier === plan.name.toLowerCase()}
+              >
+                {profile.subscription_tier === plan.name.toLowerCase() 
+                  ? 'Current Plan' 
+                  : `Upgrade to ${plan.name}`
+                }
+              </Button>
+            </div>
+          ))}
+        </div>
+
+        <p className="text-center text-text-secondary text-sm">
+          14-day money-back guarantee on all plans
+        </p>
+      </div>
 
       {/* Competitors */}
-      <Card className="card-glass p-8">
-        <h2 className="text-2xl font-bold text-white mb-6 flex items-center">
-          <Users className="w-6 h-6 mr-2 text-purple-400" />
-          Competitors
-        </h2>
+      <div className="card-glass rounded-2xl p-8">
+        <h2 className="text-2xl font-bold text-white mb-6">Competitors</h2>
         
         <div className="space-y-4 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Input
+              placeholder="Competitor Name"
+              value={newCompetitor.name}
+              onChange={(e) => setNewCompetitor({ ...newCompetitor, name: e.target.value })}
+              className="input-glass"
+            />
+            <Input
+              placeholder="Website URL"
+              value={newCompetitor.website_url}
+              onChange={(e) => setNewCompetitor({ ...newCompetitor, website_url: e.target.value })}
+              className="input-glass"
+            />
+            <Input
+              placeholder="LinkedIn URL"
+              value={newCompetitor.linkedin_url}
+              onChange={(e) => setNewCompetitor({ ...newCompetitor, linkedin_url: e.target.value })}
+              className="input-glass"
+            />
+          </div>
+          <Button onClick={handleAddCompetitor} className="btn-hero">
+            Add Competitor
+          </Button>
+        </div>
+
+        <div className="space-y-3">
           {competitors.map((competitor) => (
-            <div key={competitor.id} className="flex items-center justify-between bg-white/5 rounded-lg p-4 border border-white/10">
+            <div key={competitor.id} className="flex items-center justify-between p-4 bg-white/5 rounded-lg">
               <div>
-                <h3 className="text-white font-medium">{competitor.name}</h3>
-                {competitor.website_url && (
-                  <p className="text-text-secondary text-sm">{competitor.website_url}</p>
-                )}
+                <p className="text-white font-medium">{competitor.name}</p>
+                <div className="flex gap-4 mt-1">
+                  {competitor.website_url && (
+                    <a href={competitor.website_url} target="_blank" rel="noopener noreferrer" className="text-text-secondary text-sm hover:text-white">
+                      Website
+                    </a>
+                  )}
+                  {competitor.linkedin_url && (
+                    <a href={competitor.linkedin_url} target="_blank" rel="noopener noreferrer" className="text-text-secondary text-sm hover:text-white">
+                      LinkedIn
+                    </a>
+                  )}
+                </div>
               </div>
               <Button
                 variant="ghost"
-                size="sm"
+                size="icon"
                 onClick={() => handleDeleteCompetitor(competitor.id)}
-                className="text-error hover:text-error"
+                className="text-white/60 hover:text-error"
               >
                 <Trash2 className="w-4 h-4" />
               </Button>
             </div>
           ))}
         </div>
+      </div>
 
-        <div className="border-t border-white/10 pt-6">
-          <h3 className="text-white font-medium mb-4">Add Competitor</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Input
-              placeholder="Competitor name"
-              className="input-glass"
-              value={newCompetitor.name}
-              onChange={(e) => setNewCompetitor({ ...newCompetitor, name: e.target.value })}
-            />
-            <Input
-              placeholder="Website URL"
-              className="input-glass"
-              value={newCompetitor.website_url}
-              onChange={(e) => setNewCompetitor({ ...newCompetitor, website_url: e.target.value })}
-            />
-            <Input
-              placeholder="LinkedIn URL"
-              className="input-glass"
-              value={newCompetitor.linkedin_url}
-              onChange={(e) => setNewCompetitor({ ...newCompetitor, linkedin_url: e.target.value })}
-            />
-          </div>
-          <Button onClick={handleAddCompetitor} className="btn-glass mt-4">
-            <Plus className="w-4 h-4 mr-2" />
-            Add Competitor
-          </Button>
+      {/* Documents & Resources */}
+      <div className="card-glass rounded-2xl p-8">
+        <h2 className="text-2xl font-bold text-white mb-6">Documents & Resources</h2>
+        
+        <div className="mb-6">
+          <Label htmlFor="document-upload" className="btn-hero cursor-pointer inline-flex items-center">
+            <Upload className="w-4 h-4 mr-2" />
+            Upload Document
+          </Label>
+          <Input
+            id="document-upload"
+            type="file"
+            onChange={handleUploadDocument}
+            className="hidden"
+          />
         </div>
-      </Card>
 
-      {/* Documents */}
-      <Card className="card-glass p-8">
-        <h2 className="text-2xl font-bold text-white mb-2 flex items-center">
-          <FileText className="w-6 h-6 mr-2 text-purple-400" />
-          Documents & Resources
-        </h2>
-        <p className="text-text-secondary mb-6">
-          Upload documents about your company (presentations, case studies, product sheets, etc.)
-        </p>
-
-        <div className="space-y-4 mb-6">
+        <div className="space-y-3">
           {documents.map((doc) => (
-            <div key={doc.name} className="flex items-center justify-between bg-white/5 rounded-lg p-4 border border-white/10">
+            <div key={doc.id} className="flex items-center justify-between p-4 bg-white/5 rounded-lg">
               <div>
-                <h3 className="text-white font-medium">{doc.name}</h3>
+                <p className="text-white font-medium">{doc.name}</p>
                 <p className="text-text-secondary text-sm">
                   {new Date(doc.created_at).toLocaleDateString()}
                 </p>
               </div>
-              <div className="flex space-x-2">
+              <div className="flex items-center space-x-2">
                 <Button
                   variant="ghost"
-                  size="sm"
-                  onClick={() => handleDownloadDocument(doc.name)}
-                  className="text-text-secondary hover:text-white"
+                  size="icon"
+                  onClick={() => handleDownloadDocument(doc.path, doc.name)}
+                  className="text-white/60 hover:text-white"
                 >
                   <Download className="w-4 h-4" />
                 </Button>
                 <Button
                   variant="ghost"
-                  size="sm"
-                  onClick={() => handleDeleteDocument(doc.name)}
-                  className="text-error hover:text-error"
+                  size="icon"
+                  onClick={() => handleDeleteDocument(doc.path)}
+                  className="text-white/60 hover:text-error"
                 >
                   <Trash2 className="w-4 h-4" />
                 </Button>
@@ -450,29 +715,7 @@ const Settings = () => {
             </div>
           ))}
         </div>
-
-        <div className="border-t border-white/10 pt-6">
-          <input
-            type="file"
-            id="file-upload"
-            className="hidden"
-            onChange={handleUploadDocument}
-            accept=".pdf,.doc,.docx,.txt,.ppt,.pptx"
-          />
-          <Button
-            onClick={() => document.getElementById('file-upload')?.click()}
-            disabled={uploading}
-            className="btn-hero"
-          >
-            {uploading ? (
-              <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin mr-2"></div>
-            ) : (
-              <Upload className="w-4 h-4 mr-2" />
-            )}
-            {uploading ? 'Uploading...' : 'Upload Document'}
-          </Button>
-        </div>
-      </Card>
+      </div>
     </div>
   );
 };
