@@ -63,8 +63,8 @@ const OnboardingWizard = ({ onComplete }: OnboardingWizardProps) => {
       // Validate form before saving
       if (!isComplete) {
         toast({
-          title: "Заполните все поля",
-          description: "Пожалуйста, заполните все обязательные поля перед началом сбора данных.",
+          title: "Fill all fields",
+          description: "Please fill all required fields before starting data collection.",
           variant: "destructive",
         });
         return;
@@ -72,8 +72,8 @@ const OnboardingWizard = ({ onComplete }: OnboardingWizardProps) => {
 
       if (!formData.termsAccepted) {
         toast({
-          title: "Примите условия",
-          description: "Необходимо принять условия использования для продолжения.",
+          title: "Accept terms",
+          description: "You need to accept terms of use to continue.",
           variant: "destructive",
         });
         return;
@@ -88,13 +88,37 @@ const OnboardingWizard = ({ onComplete }: OnboardingWizardProps) => {
       
       if (success) {
         toast({
-          title: "Данные сохранены!",
-          description: "Начинаем сбор данных для анализа.",
+          title: "Data saved!",
+          description: "Starting data collection for analysis.",
         });
         onComplete();
       }
     } else {
       setCurrentStep(prev => prev + 1);
+    }
+  };
+
+  const callWebhook = async (userId: string) => {
+    try {
+      console.log('Calling webhook with user_id:', userId);
+      const response = await fetch('https://kuts.air2.top/webhook/start-data-collection', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ user_id: userId }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Webhook failed with status: ${response.status}`);
+      }
+
+      console.log('Webhook called successfully');
+      return true;
+    } catch (error) {
+      console.error('Webhook call failed:', error);
+      // Don't block the flow if webhook fails, just log it
+      return false;
     }
   };
 
@@ -105,8 +129,8 @@ const OnboardingWizard = ({ onComplete }: OnboardingWizardProps) => {
       if (!user) {
         console.error('No user found');
         toast({
-          title: "Ошибка авторизации",
-          description: "Не удалось получить данные пользователя. Попробуйте войти заново.",
+          title: "Authorization error",
+          description: "Failed to get user data. Please try logging in again.",
           variant: "destructive",
         });
         return false;
@@ -139,8 +163,8 @@ const OnboardingWizard = ({ onComplete }: OnboardingWizardProps) => {
       if (companyError) {
         console.error('Error saving company data:', companyError);
         toast({
-          title: "Ошибка сохранения",
-          description: `Не удалось сохранить данные компании: ${companyError.message}`,
+          title: "Save error",
+          description: `Failed to save company data: ${companyError.message}`,
           variant: "destructive",
         });
         return false;
@@ -169,8 +193,8 @@ const OnboardingWizard = ({ onComplete }: OnboardingWizardProps) => {
         if (competitorsError) {
           console.error('Error saving competitors:', competitorsError);
           toast({
-            title: "Ошибка сохранения",
-            description: `Не удалось сохранить данные конкурентов: ${competitorsError.message}`,
+            title: "Save error",
+            description: `Failed to save competitor data: ${competitorsError.message}`,
             variant: "destructive",
           });
           return false;
@@ -188,21 +212,25 @@ const OnboardingWizard = ({ onComplete }: OnboardingWizardProps) => {
       if (profileError) {
         console.error('Error updating profile:', profileError);
         toast({
-          title: "Ошибка обновления",
-          description: `Не удалось обновить профиль: ${profileError.message}`,
+          title: "Update error",
+          description: `Failed to update profile: ${profileError.message}`,
           variant: "destructive",
         });
         return false;
       }
 
       console.log('Profile updated successfully');
+      
+      // Call webhook after successful data save
+      await callWebhook(user.id);
+      
       return true;
 
     } catch (error) {
       console.error('Error saving onboarding data:', error);
       toast({
-        title: "Неожиданная ошибка",
-        description: `Произошла ошибка при сохранении данных: ${error.message}`,
+        title: "Unexpected error",
+        description: `Error occurred while saving data: ${error.message}`,
         variant: "destructive",
       });
       return false;
@@ -298,7 +326,7 @@ const OnboardingWizard = ({ onComplete }: OnboardingWizardProps) => {
             disabled={isLastStep && (!isComplete || isLoading)}
             className="btn-hero"
           >
-            {isLoading ? 'Сохранение...' : isLastStep ? 'Start Data Collection' : 'Continue'}
+            {isLoading ? 'Saving...' : isLastStep ? 'Start Data Collection' : 'Continue'}
             {!isLastStep && <ChevronRight className="w-5 h-5 ml-2" />}
           </Button>
         </div>
