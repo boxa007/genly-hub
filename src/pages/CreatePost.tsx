@@ -14,6 +14,7 @@ import { HookSelector } from "@/components/dashboard/HookSelector";
 import { RegenerationToolbar } from "@/components/dashboard/RegenerationToolbar";
 import { QuickSettingsMenu } from "@/components/dashboard/QuickSettingsMenu";
 import { EditContentModal } from "@/components/dashboard/EditContentModal";
+import { Progress } from "@/components/ui/progress";
 
 const contentTypes = [
   { id: 'engagement', label: 'Engagement' },
@@ -34,6 +35,7 @@ const CreatePost = () => {
   const [showHookSelector, setShowHookSelector] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [isRegenerating, setIsRegenerating] = useState<'text' | 'image' | 'all' | null>(null);
+  const [generationProgress, setGenerationProgress] = useState(0);
   const [imageData, setImageData] = useState<ImageData | null>({
     mode: 'generate',
     style: 'realistic_photo',
@@ -64,21 +66,33 @@ const CreatePost = () => {
     setSelectedHookIndex(-1);
     setGeneratedContent('');
     setGeneratedHooks([]);
+    setGenerationProgress(0);
     
-    // Simulate AI generation
-    await new Promise(resolve => setTimeout(resolve, 3000));
-    
-    // Generate 4 different hooks
-    const hooks = [
-      `🚀 Just discovered something that completely changed my perspective on ${formData.topic}...`,
-      `💡 Here's an uncomfortable truth about ${formData.topic} that nobody talks about...`,
-      `📊 After analyzing 1000+ cases, I found the #1 mistake people make with ${formData.topic}...`,
-      `🎯 Want to know the secret that top performers use for ${formData.topic}?`,
-    ];
-    
-    // Mock generated content based on type
-    const mockContent = {
-      engagement: `🚀 Just had an incredible conversation with a potential client who said something that stopped me in my tracks...
+    try {
+      // Progress animation
+      const progressInterval = setInterval(() => {
+        setGenerationProgress(prev => Math.min(prev + 10, 90));
+      }, 300);
+
+      // Call edge function to generate hooks
+      const { data, error } = await supabase.functions.invoke('generate-hooks', {
+        body: { topic: formData.topic }
+      });
+
+      clearInterval(progressInterval);
+      setGenerationProgress(100);
+
+      if (error) {
+        throw new Error(error.message || 'Failed to generate hooks');
+      }
+
+      if (!data?.hooks || !Array.isArray(data.hooks) || data.hooks.length !== 4) {
+        throw new Error('Invalid response format');
+      }
+
+      // Mock generated content based on type
+      const mockContent = {
+        engagement: `🚀 Just had an incredible conversation with a potential client who said something that stopped me in my tracks...
 
 "We've been trying to solve this problem for 3 years, and in 30 minutes you've given us a completely new perspective."
 
@@ -86,7 +100,7 @@ This reminded me why I love what we do at our company. It's not just about the s
 
 What's the most surprising insight you've gained from a client conversation? 👇`,
 
-      educational: `📊 The biggest mistake I see companies make with LinkedIn? Treating it like Facebook.
+        educational: `📊 The biggest mistake I see companies make with LinkedIn? Treating it like Facebook.
 
 Here's what works instead:
 
@@ -100,7 +114,7 @@ LinkedIn rewards authentic professional engagement. The algorithm can tell the d
 
 Which of these do you struggle with most? Let's discuss below 👇`,
 
-      'lead-magnet': `🎯 Want to know the exact framework we use to generate 10x more qualified leads?
+        'lead-magnet': `🎯 Want to know the exact framework we use to generate 10x more qualified leads?
 
 I just published our complete "Lead Generation Blueprint" that includes:
 
@@ -113,7 +127,7 @@ This is the same system that helped our clients generate over $2M in new revenue
 
 Drop a comment with "BLUEPRINT" and I'll send you the free guide 👇`,
 
-      'company-update': `🎉 Exciting news! We just hit a major milestone at ContentGen...
+        'company-update': `🎉 Exciting news! We just hit a major milestone at ContentGen...
 
 We've now helped over 10,000 professionals create viral LinkedIn content, generating over 2 million posts and driving incredible engagement for our community.
 
@@ -124,15 +138,31 @@ Or Mike, who landed 3 new clients just from his LinkedIn content.
 Or the team at TechCorp who increased their lead generation by 400%.
 
 This is just the beginning. Thank you to our amazing community for trusting us with your LinkedIn growth! 🙏`
-    };
+      };
 
-    const bodyContent = mockContent[formData.contentType as keyof typeof mockContent] || '';
-    
-    setGeneratedHooks(hooks);
-    setGeneratedContent(bodyContent);
-    setShowHookSelector(true);
-    setSelectedHookIndex(-1);
-    setIsGenerating(false);
+      const bodyContent = mockContent[formData.contentType as keyof typeof mockContent] || '';
+      
+      setGeneratedHooks(data.hooks);
+      setGeneratedContent(bodyContent);
+      setShowHookSelector(true);
+      setSelectedHookIndex(-1);
+
+      toast({
+        title: "Content generated!",
+        description: "Your hooks are ready. Select one to continue.",
+      });
+
+    } catch (error: any) {
+      console.error('Generation error:', error);
+      toast({
+        title: "Generation failed",
+        description: error.message || "Failed to generate content. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGenerating(false);
+      setGenerationProgress(0);
+    }
   };
 
   const handleSelectHook = (index: number) => {
@@ -144,20 +174,36 @@ This is just the beginning. Thank you to our amazing community for trusting us w
     setIsRegenerating('text');
     setShowHookSelector(false);
     setSelectedHookIndex(-1);
-    await new Promise(resolve => setTimeout(resolve, 2000));
     
-    // Generate new hooks
-    const newHooks = [
-      `🌟 This ${formData.topic} insight just blew my mind...`,
-      `⚡ Stop doing ${formData.topic} the hard way. Here's what actually works...`,
-      `🔥 The ${formData.topic} strategy that tripled our results...`,
-      `💬 Real talk: What everyone gets wrong about ${formData.topic}...`,
-    ];
-    
-    setGeneratedHooks(newHooks);
-    setShowHookSelector(true);
-    setSelectedHookIndex(-1);
-    setIsRegenerating(null);
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-hooks', {
+        body: { topic: formData.topic }
+      });
+
+      if (error) throw error;
+
+      if (!data?.hooks || !Array.isArray(data.hooks)) {
+        throw new Error('Invalid response format');
+      }
+
+      setGeneratedHooks(data.hooks);
+      setShowHookSelector(true);
+      setSelectedHookIndex(-1);
+
+      toast({
+        title: "Hooks regenerated!",
+        description: "Select a new hook to continue.",
+      });
+
+    } catch (error: any) {
+      toast({
+        title: "Regeneration failed",
+        description: error.message || "Failed to regenerate hooks.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsRegenerating(null);
+    }
   };
 
   const handleRegenerateImage = async () => {
@@ -428,8 +474,26 @@ This is just the beginning. Thank you to our amazing community for trusting us w
 
           {/* Right Column - Preview */}
           <div className="space-y-6">
+            {/* Generation Progress */}
+            {isGenerating && (
+              <div className="card-glass rounded-2xl p-8 space-y-4">
+                <div className="text-center">
+                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-purple-500/20 mb-4">
+                    <Sparkles className="w-8 h-8 text-purple-400 animate-pulse" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-white mb-2">
+                    Generating hooks...
+                  </h3>
+                  <p className="text-text-secondary text-sm mb-4">
+                    AI is crafting engaging hooks for your content
+                  </p>
+                  <Progress value={generationProgress} className="h-2" />
+                </div>
+              </div>
+            )}
+
             {/* Hook Selector */}
-            {showHookSelector && generatedHooks.length > 0 && (
+            {!isGenerating && showHookSelector && generatedHooks.length > 0 && (
               <HookSelector
                 key={`hooks-${generatedHooks[0]}`}
                 hooks={generatedHooks}
