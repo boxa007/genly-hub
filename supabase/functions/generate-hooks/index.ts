@@ -50,12 +50,12 @@ serve(async (req) => {
     const data = await webhookResponse.json();
     console.log('Webhook response:', data);
 
-    // Parse the response format: [{ "output": { "hook1": "...", "hook2": "...", ... } }]
-    if (!Array.isArray(data) || !data[0]?.output) {
+    // Parse the response format: { "output": { "hook1": "...", "hook2": "...", ... } }
+    if (!data?.output) {
       throw new Error('Invalid response format from webhook');
     }
 
-    const output = data[0].output;
+    const output = data.output;
     const hooks = [
       output.hook1,
       output.hook2,
