@@ -279,42 +279,7 @@ export type Database = {
       }
     }
     Views: {
-      user_integrations_decrypted: {
-        Row: {
-          access_token: string | null
-          created_at: string | null
-          expires_at: string | null
-          id: string | null
-          is_active: boolean | null
-          platform: string | null
-          refresh_token: string | null
-          updated_at: string | null
-          user_id: string | null
-        }
-        Insert: {
-          access_token?: never
-          created_at?: string | null
-          expires_at?: string | null
-          id?: string | null
-          is_active?: boolean | null
-          platform?: string | null
-          refresh_token?: never
-          updated_at?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          access_token?: never
-          created_at?: string | null
-          expires_at?: string | null
-          id?: string | null
-          is_active?: boolean | null
-          platform?: string | null
-          refresh_token?: never
-          updated_at?: string | null
-          user_id?: string | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       decrypt_token: {
@@ -328,6 +293,20 @@ export type Database = {
       get_encryption_key: {
         Args: Record<PropertyKey, never>
         Returns: string
+      }
+      get_user_integration: {
+        Args: { integration_platform: string }
+        Returns: {
+          access_token: string
+          created_at: string
+          expires_at: string
+          id: string
+          is_active: boolean
+          platform: string
+          refresh_token: string
+          updated_at: string
+          user_id: string
+        }[]
       }
     }
     Enums: {
