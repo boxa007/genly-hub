@@ -87,21 +87,9 @@ export const HookSelector = ({ hooks, postBody, onSelectHook }: HookSelectorProp
               {/* Hook Preview */}
               <div className="flex-1">
                 <p className="text-white text-sm leading-relaxed whitespace-pre-wrap">
-                  {hook.text}
+                  {hook.fullText}
                 </p>
               </div>
-
-              {/* Show Full Preview Link */}
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handlePreview(index);
-                }}
-                className="flex-shrink-0 text-brand-cyan text-xs font-medium flex items-center space-x-1 hover:underline"
-              >
-                <Eye className="w-3 h-3" />
-                <span>Preview</span>
-              </button>
             </div>
 
             {/* Selected Indicator */}
