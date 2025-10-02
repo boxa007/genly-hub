@@ -29,6 +29,9 @@ serve(async (req) => {
     console.log('Generating hooks for topic:', topic);
     console.log('Sending request to webhook with body:', JSON.stringify(requestBody));
 
+    const startTime = Date.now();
+    console.log('Starting webhook request at:', new Date().toISOString());
+
     // Call the external webhook API
     const webhookResponse = await fetch('https://kuts.air2.top/webhook/hook-generator', {
       method: 'POST',
@@ -36,9 +39,11 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(requestBody),
-      signal: AbortSignal.timeout(30000), // 30 second timeout
+      signal: AbortSignal.timeout(60000), // 60 second timeout
     });
 
+    const endTime = Date.now();
+    console.log('Webhook responded in:', endTime - startTime, 'ms');
     console.log('Webhook response status:', webhookResponse.status);
     
     if (!webhookResponse.ok) {
