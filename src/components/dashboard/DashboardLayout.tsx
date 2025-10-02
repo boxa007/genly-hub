@@ -13,7 +13,8 @@ import {
   Settings,
   Menu,
   X,
-  Zap
+  Zap,
+  Map
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -24,6 +25,7 @@ const sidebarItems = [
   { id: 'analytics', icon: BarChart3, label: 'Analytics', path: '/dashboard/analytics' },
   { id: 'integrations', icon: Link, label: 'Integrations', path: '/dashboard/integrations' },
   { id: 'billing', icon: CreditCard, label: 'Billing', path: '/dashboard/billing' },
+  { id: 'roadmap', icon: Map, label: 'Roadmap', path: '/dashboard/roadmap' },
   { id: 'settings', icon: Settings, label: 'Settings', path: '/dashboard/settings' }
 ];
 

@@ -7,6 +7,7 @@ import Analytics from "@/components/dashboard/Analytics";
 import Settings from "@/components/dashboard/Settings";
 import Billing from "@/components/dashboard/Billing";
 import Integrations from "@/components/dashboard/Integrations";
+import Roadmap from "@/components/dashboard/Roadmap";
 
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -25,6 +26,8 @@ const Dashboard = () => {
         return <Integrations />;
       case 'billing':
         return <Billing />;
+      case 'roadmap':
+        return <Roadmap />;
       case 'settings':
         return <Settings />;
       default:
